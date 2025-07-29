@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecruitPro Assessment - Enterprise Werving Analyse | RecruitIn</title>
+    <meta name="description" content="Professionele recruitment assessment tool voor Nederlandse bedrijven. Krijg inzicht in je wervingsproces en concrete verbeteradviezen.">
+    <meta name="keywords" content="recruitment, werving, assessment, HR, personeel, vacatures, RecruitIn">
+    <meta name="author" content="RecruitIn - Wouter Arts">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.recruitmentapk.nl/">
+    <meta property="og:title" content="RecruitPro Assessment - Enterprise Werving Analyse">
+    <meta property="og:description" content="Professionele recruitment assessment voor Nederlandse bedrijven">
+    <meta property="og:image" content="https://www.recruitmentapk.nl/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.recruitmentapk.nl/">
+    <meta property="twitter:title" content="RecruitPro Assessment - Enterprise Werving Analyse">
+    <meta property="twitter:description" content="Professionele recruitment assessment voor Nederlandse bedrijven">
+    
+    <link rel="canonical" href="https://www.recruitmentapk.nl/">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center text-white font-bold">R</div>
+                <div>
+                    <div class="font-bold text-slate-800">RecruitPro Enterprise</div>
+                    <div class="text-xs text-slate-500">by RecruitIn</div>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm">
+                <span class="text-slate-600">📞 06-14314593</span>
+                <span class="text-slate-600">📧 warts@recruitin.nl</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="fade-in">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="gradient-bg h-2"></div>
+                
+                <div class="p-8 md:p-12 text-center">
+                    <div class="flex items-center justify-center gap-4 mb-8">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
+                            R
+                        </div>
+                        <div class="text-left">
+                            <h1 class="text-3xl font-bold text-slate-800">RECRUITPRO ENTERPRISE</h1>
+                            <p class="text-slate-600">Geavanceerde Werving Analyse & Strategisch Advies</p>
+                        </div>
+                    </div>
+
+                    <div class="max-w-2xl mx-auto mb-8">
+                        <p class="text-lg text-slate-700 leading-relaxed">
+                            🎯 <strong>Enterprise-grade recruitment assessment</strong> met strategische vragen, 
+                            sector benchmarking, competitive positioning en gedetailleerd actieplan. 
+                            Krijg inzicht in je maturity level, ROI projecties en concrete implementatie roadmap.
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">📊</div>
+                            <div class="font-semibold text-slate-800">19 Strategische Vragen</div>
+                            <div class="text-sm text-slate-600">Enterprise-niveau analyse</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">🎯</div>
+                            <div class="font-semibold text-slate-800">Sector Benchmarking</div>
+                            <div class="text-sm text-slate-600">Vergelijk met andere bedrijven</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl text-center">
+                            <div class="text-2xl mb-2">🚀</div>
+                            <div class="font-semibold text-slate-800">Concrete Acties</div>
+                            <div class="text-sm text-slate-600">Direct toepasbare adviezen</div>
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="startAssessment()"
+                        class="gradient-bg hover:opacity-90 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 mx-auto card-hover pulse"
+                    >
+                        <span>🚀</span>
+                        Start Enterprise Assessment
+                        <span class="text-sm opacity-80">(5 minuten)</span>
+                    </button>
+
+                    <p class="text-xs text-slate-500 mt-4">
+                        ✅ Gratis assessment • 🔒 Veilige data behandeling • 📞 Persoonlijk adviesgesprek mogelijk
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Screen -->
+        <div id="assessment-screen" class="hidden fade-in">
+            <!-- Progress Bar -->
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-slate-800">Enterprise Assessment</h2>
+                    <span id="progress-text" class="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                        1 / 19
+                    </span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3">
+                    <div id="progress-bar" class="gradient-bg h-3 rounded-full progress-bar" style="width: 5%"></div>
+                </div>
+                <div class="text-xs text-slate-500 mt-2 text-center">
+                    <span id="time-estimate">Geschatte tijd: 4 minuten</span>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-800 to-blue-800 text-white p-6">
+                    <h2 class="text-2xl font-semibold mb-2">Enterprise Recruitment Intelligence</h2>
+                    <p class="text-slate-200">Uitgebreide analyse van je recruitment maturity en competitive positioning</p>
+                </div>
+
+                <div class="p-8">
+                    <div class="mb-6">
+                        <div class="inline-block gradient-bg text-white px-3 py-1 rounded-full text-sm font-semibold mb-4">
+                            <span id="question-number">Vraag 1 van 19</span>
+                        </div>
+                        <h3 id="question-text" class="text-2xl font-semibold text-slate-800 mb-4">
+                            <!-- Question will be populated by JavaScript -->
+                        </h3>
+                        <div id="question-help" class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mb-6">
+                            <!-- Help text will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div id="options-container" class="grid gap-3">
+                        <!-- Options will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center p-6 bg-slate-50 border-t">
+                    <button
+                        id="prev-btn"
+                        onclick="prevQuestion()"
+                        disabled
+                        class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-slate-400 cursor-not-allowed"
+                    >
+                        ← Vorige
+                    </button>
+
+                    <button
+                        id="next-btn"
+                        onclick="nextQuestion()"
+                        disabled
+                        class="flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all bg-slate-300 text-slate-500 cursor-not-allowed"
+                    >
+                        Volgende →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form Screen -->
+        <div id="contact-screen" class="hidden fade-in">
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                <div class="gradient-bg text-white p-6 text-center">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div class="text-2xl">🎯</div>
+                    </div>
+                    <h2 class="text-2xl font-semibold mb-2">Assessment Voltooid!</h2>
+                    <p class="text-orange-100">Ontvang je persoonlijke wervingsrapport</p>
+                </div>
+
+                <div class="p-8">
+                    <div class="max-w-md mx-auto">
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-2">Voor- en achternaam *</label>
+                                <input
+                                    type="text"
+                                    id="contact-name"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                    placeholder="Jouw volledige naam"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-2">E-mailadres *</label>
+                                <input
+                                    type="email"
+                                    id="contact-email"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                    placeholder="naam@bedrijf.nl"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-2">Telefoonnummer *</label>
+                                <input
+                                    type="tel"
+                                    id="contact-phone"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                    placeholder="06-12345678"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-2">Bedrijfsnaam *</label>
+                                <input
+                                    type="text"
+                                    id="contact-company"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                    placeholder="Jouw bedrijfsnaam"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                            <div class="flex items-start gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    id="privacy-check" 
+                                    class="mt-1 w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500" 
+                                />
+                                <label for="privacy-check" class="text-sm text-slate-700 leading-relaxed cursor-pointer">
+                                    Ik ga akkoord met het verwerken van mijn gegevens voor het opstellen van mijn persoonlijke wervingsrapport. 
+                                    Mijn gegevens worden veilig behandeld conform de AVG-privacyvoorwaarden. *
+                                </label>
+                            </div>
+                        </div>
+
+                        <button
+                            onclick="submitContact()"
+                            id="submit-btn"
+                            disabled
+                            class="w-full py-3 rounded-lg font-semibold transition-all bg-slate-300 text-slate-500 cursor-not-allowed"
+                        >
+                            📊 Ontvang Mijn Persoonlijke Wervingsrapport
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="success-screen" class="hidden fade-in">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="gradient-bg text-white p-8 text-center">
+                    <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div class="text-4xl">🎉</div>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-4">Bedankt!</h2>
+                    <p class="text-xl text-orange-100">
+                        Je assessment is voltooid en opgeslagen
+                    </p>
+                </div>
+                <div class="p-8 text-center">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                        <div class="text-green-600 font-semibold mb-2">✅ Je assessment is succesvol verzonden!</div>
+                        <p class="text-slate-700">
+                            Binnen 24 uur neem ik persoonlijk contact met je op voor een vrijblijvend adviesgesprek over je wervingsuitdagingen.
+                        </p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-slate-50 p-6 rounded-xl">
+                            <h3 class="font-semibold text-slate-800 mb-4">📞 Direct Contact</h3>
+                            <div class="space-y-2 text-slate-600">
+                                <div>📧 warts@recruitin.nl</div>
+                                <div>📱 06-14314593</div>
+                                <div>🌐 www.recruitin.nl</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-xl">
+                            <h3 class="font-semibold text-slate-800 mb-4">🎯 Wat kun je verwachten?</h3>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• Persoonlijke analyse van je antwoorden</div>
+                                <div>• Benchmarking tegen je sector</div>
+                                <div>• Concrete verbeteradviezen</div>
+                                <div>• ROI berekening van optimalisaties</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button
+                        onclick="window.open('https://www.recruitin.nl', '_blank')"
+                        class="gradient-bg text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all"
+                    >
+                        🌐 Bezoek RecruitIn Website
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white mt-16">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center text-white font-bold">R</div>
+                        <span class="font-bold">RecruitPro</span>
+                    </div>
+                    <p class="text-slate-300 text-sm">
+                        Enterprise recruitment assessment tool voor Nederlandse bedrijven.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <div class="space-y-2 text-sm text-slate-300">
+                        <div>Wouter Arts - Recruitment Adviseur</div>
+                        <div>📧 warts@recruitin.nl</div>
+                        <div>📱 06-14314593</div>
+                        <div>🌐 www.recruitin.nl</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Privacy & Kwaliteit</h4>
+                    <div class="space-y-2 text-sm text-slate-300">
+                        <div>🔒 AVG Compliant</div>
+                        <div>✅ SSL Beveiligd</div>
+                        <div>🏆 Enterprise Grade</div>
+                        <div>📊 Data Driven</div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-700 mt-8 pt-6 text-center text-sm text-slate-400">
+                <p>&copy; 2025 RecruitIn BV - Alle rechten voorbehouden | Privacy & Cookies | Algemene Voorwaarden</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const questions = [
+            {
+                text: "In welke sector is jouw bedrijf actief?",
+                help: "Dit helpt ons om je te benchmarken tegen soortgelijke bedrijven in jouw branche en specifieke sector insights te geven.",
+                options: [
+                    "🏗️ Bouw & Constructie",
+                    "⚡ Installatietechniek (W/E/Klimaat)",
+                    "🔧 Metaalbewerking & Industrie",
+                    "⚙️ Machinebouw & Equipment",
+                    "💻 High-tech & Elektronica",
+                    "📋 Andere technische sector"
+                ]
+            },
+            {
+                text: "Hoeveel medewerkers heeft jouw bedrijf?",
+                help: "De bedrijfsgrootte bepaalt welke recruitment strategieën en benchmarks het meest relevant zijn.",
+                options: [
+                    "👤 1-25 medewerkers (micro bedrijf)",
+                    "👥 25-50 medewerkers (klein bedrijf)",
+                    "🏢 50-100 medewerkers (middelgroot)",
+                    "🏭 100-250 medewerkers (groot MKB)",
+                    "🌐 250+ medewerkers (enterprise)",
+                    "📊 Wisselend door groei/seizoen"
+                ]
+            },
+            {
+                text: "Hoeveel nieuwe mensen neem je gemiddeld per jaar aan?",
+                help: "Dit volume bepaalt welke recruitment processen en tools voor jou het meest effectief zijn.",
+                options: [
+                    "👤 Minder dan 5 per jaar",
+                    "👥 5-15 per jaar",
+                    "👥👥 15-30 per jaar",
+                    "🏢 30-50 per jaar",
+                    "🏭 50+ per jaar",
+                    "📊 Zeer wisselend per periode"
+                ]
+            },
+            {
+                text: "Wat is jouw grootste uitdaging bij recruitment?",
+                help: "Je primaire uitdaging bepaalt welke oplossingen we voorstellen en hoe we je advies prioriteren.",
+                options: [
+                    "😤 We vinden te weinig geschikte kandidaten",
+                    "⏰ Het duurt veel te lang om posities in te vullen",
+                    "💸 Recruitment kost ons te veel geld",
+                    "🏆 Concurrenten pakken de beste kandidaten weg",
+                    "❌ We trekken niet de juiste mensen aan",
+                    "🌪️ Ons hele proces is chaotisch en inefficiënt"
+                ]
+            },
+            {
+                text: "Hoe lang duurt het gemiddeld van vacature tot eerste werkdag?",
+                help: "Time-to-hire is een cruciale metric voor recruitment efficiency en kandidaat experience.",
+                options: [
+                    "⚡ Minder dan 30 dagen",
+                    "😊 30-45 dagen",
+                    "😐 45-60 dagen",
+                    "😕 60-75 dagen",
+                    "🐌 75-90 dagen",
+                    "⏰ Meer dan 90 dagen"
+                ]
+            },
+            {
+                text: "Hoe vaak vind je binnen de gewenste tijd de juiste persoon?",
+                help: "Success rate toont de effectiviteit van je huidige recruitment aanpak en proces kwaliteit.",
+                options: [
+                    "🏆 Bijna altijd (90%+) - we zijn zeer succesvol",
+                    "😊 Meestal wel (70-90%) - redelijk effectief",
+                    "😐 Ongeveer de helft (50-70%) - wisselend succes",
+                    "😕 Regelmatig niet (30-50%) - vaak problemen",
+                    "😤 Zelden (minder dan 30%) - structurele uitdagingen",
+                    "🤷 We meten dit niet systematisch"
+                ]
+            },
+            {
+                text: "Wat kost het jou gemiddeld om één nieuwe medewerker aan te nemen?",
+                help: "Cost-per-hire inclusief alle kosten: advertenties, tijd, bureaus, assessments, etc.",
+                options: [
+                    "💪 Minder dan €3.000",
+                    "😊 €3.000 - €6.000",
+                    "😐 €6.000 - €10.000",
+                    "😕 €10.000 - €15.000",
+                    "💸 €15.000 - €25.000",
+                    "🔥 Meer dan €25.000"
+                ]
+            },
+            {
+                text: "Hoe tevreden ben je met de kwaliteit van nieuwe hires?",
+                help: "Quality of hire meet hoe goed nieuwe medewerkers presteren na 6-12 maanden.",
+                options: [
+                    "🌟 Uitstekend - overtreffen verwachtingen",
+                    "😊 Goed - voldoen aan verwachtingen",
+                    "😐 Wisselend - sommigen wel, anderen niet",
+                    "😕 Teleurstellend - vaak onder verwachting",
+                    "😤 Problematisch - veel vertrek/mismatch",
+                    "🤷 We evalueren dit niet structureel"
+                ]
+            },
+            {
+                text: "Waar vind je momenteel je beste kandidaten?",
+                help: "Source of hire analysis - welk kanaal levert je de meest succesvolle medewerkers op?",
+                options: [
+                    "💼 LinkedIn (actief sourcing)",
+                    "📋 Vacaturesites (Indeed, Monsterboard)",
+                    "🏢 Wervingsbureaus en headhunters",
+                    "👥 Eigen netwerk en referrals",
+                    "🌐 Eigen website en carrièrepagina",
+                    "📱 Social media en andere kanalen"
+                ]
+            },
+            {
+                text: "Welke recruitment tools en systemen gebruik je?",
+                help: "Technology stack bepaalt je efficiency en mogelijkheden voor data-driven recruitment.",
+                options: [
+                    "🚀 Professioneel ATS met integraties",
+                    "📊 Basis ATS of recruitment software",
+                    "📧 Hoofdzakelijk Excel en email",
+                    "🔀 Mix van verschillende tools",
+                    "📝 Voornamelijk handmatig/papier",
+                    "🤷 Weet niet precies wat we gebruiken"
+                ]
+            },
+            {
+                text: "Hoe belangrijk is employer branding voor jouw organisatie?",
+                help: "Employer branding impact op candidate attraction, quality en acceptance rates.",
+                options: [
+                    "🌟 Zeer belangrijk - we investeren er actief in",
+                    "👍 Belangrijk - we doen er wel wat aan",
+                    "😐 Matig belangrijk - weinig aandacht voor",
+                    "❓ Niet prioriteit - andere dingen gaan voor",
+                    "💭 Geen idee wat dit precies inhoudt",
+                    "🤔 Willen er meer mee doen"
+                ]
+            },
+            {
+                text: "Hoeveel kost een verkeerde aanname je ongeveer?",
+                help: "Total cost of bad hire: werving, training, verloren productiviteit, impact op team, etc.",
+                options: [
+                    "💰 €5.000 - €15.000",
+                    "💸 €15.000 - €30.000",
+                    "🔥 €30.000 - €50.000",
+                    "💥 €50.000 - €75.000",
+                    "🚨 Meer dan €75.000",
+                    "❓ Hebben we nooit uitgerekend"
+                ]
+            },
+            {
+                text: "Hoe meet je het succes van je recruitment activiteiten?",
+                help: "Data-driven recruitment: welke KPI's track je om je recruitment performance te optimaliseren?",
+                options: [
+                    "📊 Uitgebreide dashboard met alle KPI's",
+                    "📈 Basis metrics (tijd, kosten, volume)",
+                    "📝 Sporadische metingen en rapportages",
+                    "👀 Vooral op gevoel en anekdotes",
+                    "❌ Meten we eigenlijk niet",
+                    "🔄 Willen dit gaan implementeren"
+                ]
+            },
+            {
+                text: "Wat is je grootste personeelszorg voor de komende 2 jaar?",
+                help: "Strategic workforce planning: welke trends en uitdagingen zie je aankomen?",
+                options: [
+                    "👴 Vergrijzing en pensionering van ervaren mensen",
+                    "🎓 Tekort aan vakbekwame mensen in onze sector",
+                    "📈 Groei bijhouden met voldoende gekwalificeerd personeel",
+                    "🔄 Hoge uitstroom en retentie problemen",
+                    "💰 Stijgende loonkosten en budgetdruk",
+                    "🌍 Combinatie van alle bovenstaande factoren"
+                ]
+            },
+            {
+                text: "Hoe concurrerend is de arbeidsmarkt in jouw sector/regio?",
+                help: "Market conditions bepalen welke recruitment strategieën en employer branding tactieken effectief zijn.",
+                options: [
+                    "🔥 Extreem competitief - oorlog om talent",
+                    "⚡ Behoorlijk lastig - veel concurrentie",
+                    "⚖️ Gemiddeld - normale marktomstandigheden",
+                    "👍 Redelijk gunstig - kunnen goed selecteren",
+                    "😌 Ruime keuze - kandidaten solliciteren bij ons",
+                    "🤷 Weet niet hoe we er tegenover staan"
+                ]
+            },
+            {
+                text: "Hoe aantrekkelijk is jullie organisatie als werkgever?",
+                help: "Employer attractiveness: hoe positioneer je jezelf ten opzichte van directe concurrenten?",
+                options: [
+                    "🏆 Veel aantrekkelijker - eerste keus voor kandidaten",
+                    "😊 Aantrekkelijker - winnen vaak van concurrenten",
+                    "😐 Vergelijkbaar - ongeveer gelijk niveau",
+                    "😕 Minder aantrekkelijk - verliezen vaak kandidaten",
+                    "😤 Veel minder - zijn vaak tweede of derde keus",
+                    "🤷 Geen idee hoe we ervoor staan in de markt"
+                ]
+            },
+            {
+                text: "Hoe georganiseerd is jullie recruitment proces?",
+                help: "Process maturity: van ad-hoc naar gestructureerd en geoptimaliseerd recruitment proces.",
+                options: [
+                    "🚀 Volledig gestroomlijnd met duidelijke workflows",
+                    "📊 Gestructureerd proces maar kan efficiënter",
+                    "📋 Basis structuur aanwezig maar inconsistent",
+                    "🔥 Reactief - reageren op wat er binnenkomt",
+                    "🌪️ Chaotisch - iedereen doet maar wat",
+                    "🔄 Bezig met proces verbetering en standaardisatie"
+                ]
+            },
+            {
+                text: "Hoe urgent is verbetering van je recruitment?",
+                help: "Urgency level bepaalt de implementatie snelheid en resource allocatie voor verbeteringen.",
+                options: [
+                    "🚨 Crisis - moet direct aangepakt worden",
+                    "⚡ Zeer urgent - binnen 1 maand resultaat nodig",
+                    "📅 Urgent - binnen 3 maanden verbetering",
+                    "📆 Belangrijk - binnen 6 maanden aanpakken",
+                    "💡 Nice to have - komend jaar oppakken",
+                    "😌 Geen directe haast - toekomstvoorbereiding"
+                ]
+            },
+            {
+                text: "Zou je open staan voor professionele recruitment ondersteuning?",
+                help: "Investment readiness: bereidheid om te investeren in recruitment optimalisatie en externe expertise.",
+                options: [
+                    "💪 Ja, we willen alles zelf leren en implementeren",
+                    "🤝 Ja, met begeleiding en training van ons team",
+                    "⚖️ Afhankelijk van de kosten en verwachte ROI",
+                    "🔍 Eerst meer informatie en concrete business case",
+                    "❌ Nee, we lossen het intern op",
+                    "🤷 Weet nog niet, hangt van verschillende factoren af"
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = {};
+        let startTime = new Date();
+
+        function startAssessment() {
+            startTime = new Date();
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('assessment-screen').classList.remove('hidden');
+            showQuestion(0);
+            
+            // Analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'assessment_started', {
+                    'event_category': 'Assessment',
+                    'event_label': 'Enterprise Assessment'
+                });
+            }
+        }
+
+        function showQuestion(index) {
+            const question = questions[index];
+            const progress = ((index + 1) / questions.length) * 100;
+            const timeRemaining = Math.max(1, Math.ceil((questions.length - index - 1) * 0.3));
+            
+            document.getElementById('progress-text').textContent = `${index + 1} / ${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('question-number').textContent = `Vraag ${index + 1} van ${questions.length}`;
+            document.getElementById('question-text').textContent = question.text;
+            document.getElementById('question-help').innerHTML = `<p class="text-slate-700 text-sm">💡 ${question.help}</p>`;
+            document.getElementById('time-estimate').textContent = `Geschatte tijd: ${timeRemaining} ${timeRemaining === 1 ? 'minuut' : 'minuten'}`;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, optionIndex) => {
+                const button = document.createElement('button');
+                button.className = 'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:border-orange-500 hover:bg-orange-50 hover:-translate-y-0.5 border-slate-200 bg-white';
+                button.innerHTML = `<span class="text-slate-800">${option}</span>`;
+                button.onclick = () => selectOption(index, optionIndex);
+                
+                // Restore previous selection
+                if (answers[index] === optionIndex) {
+                    button.className = 'p-4 rounded-xl border-2 text-left transition-all duration-300 border-orange-500 bg-orange-50 transform -translate-y-0.5 relative';
+                    button.innerHTML += '<div class="absolute top-4 right-4 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>';
+                }
+                
+                optionsContainer.appendChild(button);
+            });
+            
+            updateNavButtons();
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            answers[questionIndex] = optionIndex;
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('#options-container button');
+            buttons.forEach((btn, idx) => {
+                if (idx === optionIndex) {
+                    btn.className = 'p-4 rounded-xl border-2 text-left transition-all duration-300 border-orange-500 bg-orange-50 transform -translate-y-0.5 relative';
+                    if (!btn.querySelector('.absolute')) {
+                        btn.innerHTML += '<div class="absolute top-4 right-4 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>';
+                    }
+                } else {
+                    btn.className = 'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:border-orange-500 hover:bg-orange-50 hover:-translate-y-0.5 border-slate-200 bg-white';
+                    const checkmark = btn.querySelector('.absolute');
+                    if (checkmark) checkmark.remove();
+                }
+            });
+            
+            updateNavButtons();
+            
+            // Analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'question_answered', {
+                    'event_category': 'Assessment',
+                    'event_label': `Question ${questionIndex + 1}`,
+                    'value': optionIndex
+                });
+            }
+            
+            // Auto advance after selection (except last question)
+            if (currentQuestion < questions.length - 1) {
+                setTimeout(() => {
+                    nextQuestion();
+                }, 800);
+            } else {
+                setTimeout(() => {
+                    completeAssessment();
+                }, 1000);
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const isAnswered = answers[currentQuestion] !== undefined;
+            
+            // Previous button
+            if (currentQuestion === 0) {
+                prevBtn.disabled = true;
+                prevBtn.className = 'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-slate-400 cursor-not-allowed';
+            } else {
+                prevBtn.disabled = false;
+                prevBtn.className = 'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-800 hover:bg-slate-200';
+            }
+            
+            // Next button (hide on last question due to auto-advance)
+            if (currentQuestion >= questions.length - 1) {
+                nextBtn.style.display = 'none';
+            } else {
+                nextBtn.style.display = 'flex';
+                if (!isAnswered) {
+                    nextBtn.disabled = true;
+                    nextBtn.className = 'flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all bg-slate-300 text-slate-500 cursor-not-allowed';
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.className = 'flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all gradient-bg text-white hover:opacity-90';
+                }
+            }
+        }
+
+        function completeAssessment() {
+            document.getElementById('assessment-screen').classList.add('hidden');
+            document.getElementById('contact-screen').classList.remove('hidden');
+            
+            // Enable form validation
+            validateContactForm();
+            
+            // Add event listeners
+            ['contact-name', 'contact-email', 'contact-phone', 'contact-company'].forEach(id => {
+                document.getElementById(id).addEventListener('input', validateContactForm);
+            });
+            document.getElementById('privacy-check').addEventListener('change', validateContactForm);
+        }
+
+        function validateContactForm() {
+            const name = document.getElementById('contact-name').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const company = document.getElementById('contact-company').value.trim();
+            const privacy = document.getElementById('privacy-check').checked;
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const isValid = name && email && phone && company && privacy;
+            
+            if (isValid) {
+                submitBtn.disabled = false;
+                submitBtn.className = 'w-full py-3 rounded-lg font-semibold transition-all gradient-bg text-white hover:opacity-90';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = 'w-full py-3 rounded-lg font-semibold transition-all bg-slate-300 text-slate-500 cursor-not-allowed';
+            }
+        }
+
+        function submitContact() {
+            const contactData = {
+                name: document.getElementById('contact-name').value.trim(),
+                email: document.getElementById('contact-email').value.trim(),
+                phone: document.getElementById('contact-phone').value.trim(),
+                company: document.getElementById('contact-company').value.trim(),
+                answers: answers,
+                completionTime: Math.round((new Date() - startTime) / 1000),
+                timestamp: new Date().toISOString()
+            };
+            
+            // Log for debugging
+            console.log('Assessment completed:', contactData);
+            
+            // Analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'assessment_completed', {
+                    'event_category': 'Assessment',
+                    'event_label': 'Enterprise Assessment Complete',
+                    'value': contactData.completionTime
+                });
+            }
+            
+            // Here you would normally send to your backend/CRM
+            // For now, we'll show success screen
+            document.getElementById('contact-screen').classList.add('hidden');
+            document.getElementById('success-screen').classList.remove('hidden');
+            
+            // You can add email sending logic here
+            // sendAssessmentEmail(contactData);
+        }
+
+        // Email sending function (you'd implement this with your backend)
+        function sendAssessmentEmail(data) {
+            // Implementation depends on your hosting setup
+            // Could use PHP, Node.js, or third-party service
+        }
+    </script>
+</body>
+</html>

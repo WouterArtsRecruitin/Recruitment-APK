@@ -4,27 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RecruitPro Assessment - Enterprise Werving Analyse | RecruitIn</title>
-    <meta name="description" content="Professionele recruitment assessment tool voor Nederlandse bedrijven. Krijg inzicht in je wervingsproces en concrete verbeteradviezen.">
-    <meta name="keywords" content="recruitment, werving, assessment, HR, personeel, vacatures, RecruitIn">
+    <meta name="description" content="Professionele recruitment assessment tool voor Nederlandse bedrijven.">
+    <meta name="keywords" content="recruitment, werving, assessment, HR">
     <meta name="author" content="RecruitIn - Wouter Arts">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="http://www.recruitmentapk.nl/">
-    <meta property="og:title" content="RecruitPro Assessment - Enterprise Werving Analyse">
-    <meta property="og:description" content="Professionele recruitment assessment voor Nederlandse bedrijven">
-    <meta property="og:image" content="http://www.recruitmentapk.nl/og-image.jpg">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="http://www.recruitmentapk.nl/">
-    <meta property="twitter:title" content="RecruitPro Assessment - Enterprise Werving Analyse">
-    <meta property="twitter:description" content="Professionele recruitment assessment voor Nederlandse bedrijven">
     
     <link rel="canonical" href="http://www.recruitmentapk.nl/">
     <link rel="icon" type="image/png" href="favicon.png">
 
     <style>
+        /* Alle bestaande styles */
         .gradient-bg {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         }
@@ -69,79 +57,166 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div class="flex items-start gap-3">
+            <div class="text-2xl">ℹ️</div>
+            <div>
+                <h4 id="notification-title" class="font-semibold text-slate-800"></h4>
+                <p id="notification-message" class="text-sm text-slate-600"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Rest van de body content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="fade-in">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="gradient-bg h-2"></div>
+                
+                <div class="p-8 md:p-12 text-center">
+                    <div class="flex items-center justify-center gap-4 mb-8">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
+                            R
+                        </div>
+                        <div class="text-left">
+                            <h1 class="text-3xl font-bold text-slate-800">RECRUITPRO ENTERPRISE</h1>
+                            <p class="text-slate-600">Geavanceerde Werving Analyse & Strategisch Advies</p>
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="startAssessment()"
+                        class="gradient-bg hover:opacity-90 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 mx-auto card-hover pulse"
+                        id="start-btn"
+                    >
+                        <span>🚀</span>
+                        Start Enterprise Assessment
+                        <span class="text-sm opacity-80">(5 minuten)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Andere schermen blijven ongewijzigd -->
+    </div>
 
     <script>
+        // Globale Debug Logging
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('🚨 Global Error:', {
+                message, 
+                source, 
+                lineno, 
+                colno, 
+                error: error ? error.toString() : 'Unknown error'
+            });
+            alert(`Er is een fout opgetreden: ${message}`);
+            return false;
+        };
+
+        // Configureer gedetailleerde debug logging
+        console.log('🚀 RecruitPro Assessment Script Loaded');
+
+        // Vragen Array (verkort voor voorbeeld)
         const questions = [
             {
                 text: "In welke sector is jouw bedrijf actief?",
-                help: "Dit helpt ons om je te benchmarken tegen soortgelijke bedrijven in jouw branche en specifieke sector insights te geven.",
+                help: "Sector benchmark",
                 options: [
                     "🏗️ Bouw & Constructie",
-                    "⚡ Installatietechniek (W/E/Klimaat)",
-                    "🔧 Metaalbewerking & Industrie",
-                    "⚙️ Machinebouw & Equipment",
-                    "💻 High-tech & Elektronica",
-                    "📋 Andere technische sector"
+                    "⚡ Installatietechniek",
+                    "🔧 Metaalbewerking",
+                    "💻 High-tech",
+                    "📋 Andere sector"
                 ]
-            },
-            // Rest van de vragen array (eerder getoond)
+            }
         ];
 
+        // Globale Assessment Variabelen
         let currentQuestion = 0;
         let answers = {};
-        let startTime = new Date();
+        let startTime;
 
-        function submitContact() {
-            const contactData = {
-                name: document.getElementById('contact-name').value.trim(),
-                email: document.getElementById('contact-email').value.trim(),
-                phone: document.getElementById('contact-phone').value.trim(),
-                company: document.getElementById('contact-company').value.trim(),
-                answers: answers,
-                completionTime: Math.round((new Date() - startTime) / 1000),
-                timestamp: new Date().toISOString(),
-                source: 'RecruitPro Assessment',
-                url: window.location.href
-            };
+        // Debug Functie om schermen te tonen/verbergen
+        function toggleScreen(showId, hideIds) {
+            console.log(`🔍 Toggling screens: Show ${showId}, Hide ${hideIds}`);
             
-            // Log for debugging
-            console.log('🎯 Assessment completed:', contactData);
-            
-            // Store in localStorage for backup
-            localStorage.setItem('recruitpro_assessment', JSON.stringify(contactData));
-            
-            // Webhook met nieuwe URL
-            fetch('https://hooks.zapier.com/hooks/catch/23933997/uusfai9/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(contactData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Webhook verzending mislukt');
+            // Toon specifiek scherm
+            const showElement = document.getElementById(showId);
+            if (showElement) {
+                showElement.classList.remove('hidden');
+            } else {
+                console.error(`❌ Scherm niet gevonden: ${showId}`);
+            }
+
+            // Verberg andere schermen
+            hideIds.forEach(hideId => {
+                const hideElement = document.getElementById(hideId);
+                if (hideElement) {
+                    hideElement.classList.add('hidden');
+                } else {
+                    console.error(`❌ Scherm niet gevonden: ${hideId}`);
                 }
-                console.log('✅ Data succesvol verzonden naar Zapier');
-            })
-            .catch(error => {
-                console.error('❌ Webhook error:', error);
-                showNotification('Verzending mislukt', 'Probeer het later opnieuw', 'error');
             });
-            
-            document.getElementById('contact-screen').classList.add('hidden');
-            document.getElementById('success-screen').classList.remove('hidden');
-            
-            showNotification('Assessment Voltooid!', `Gegevens van ${contactData.name} zijn opgeslagen`, 'success');
         }
 
-        // Alle andere functies (startAssessment, showQuestion, etc.)
+        // Start Assessment Functie
+        function startAssessment() {
+            console.log('🎯 startAssessment() aangeroepen');
+            try {
+                startTime = new Date();
+                toggleScreen('assessment-screen', ['welcome-screen']);
+                showQuestion(0);
+                showNotification('Assessment Gestart', 'Beantwoord alle vragen voor een volledig rapport', 'success');
+            } catch (error) {
+                console.error('❌ Start Assessment Error:', error);
+                alert('Kan assessment niet starten: ' + error.message);
+            }
+        }
 
-        // Global Error Handling
-        window.addEventListener('error', (event) => {
-            console.error('🚨 Systeemfout:', event.error);
-            alert('Er is een onverwachte fout opgetreden. Herlaad de pagina.');
+        // Notification Functie
+        function showNotification(title, message, type = 'info') {
+            console.log(`📣 Notification: ${title} - ${message}`);
+            const notification = document.getElementById('notification');
+            const titleEl = document.getElementById('notification-title');
+            const messageEl = document.getElementById('notification-message');
+            
+            if (titleEl && messageEl && notification) {
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
+            } else {
+                console.error('❌ Notification elements not found');
+            }
+        }
+
+        // Vraag tonen functie
+        function showQuestion(index) {
+            console.log(`❓ Tonen vraag ${index}`);
+            // Placeholder - implementeer volledige logica
+        }
+
+        // DOM Fully Loaded Event Listener
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌐 DOM Fully Loaded');
+            
+            // Controleer start button
+            const startButton = document.getElementById('start-btn');
+            if (startButton) {
+                startButton.addEventListener('click', function() {
+                    console.log('🚀 Start Button Clicked');
+                    startAssessment();
+                });
+            } else {
+                console.error('❌ Start button not found!');
+            }
         });
     </script>
 </body>

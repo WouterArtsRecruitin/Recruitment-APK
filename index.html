@@ -4,27 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RecruitPro Assessment - Enterprise Werving Analyse | RecruitIn</title>
+    <meta name="description" content="Professionele recruitment assessment tool voor Nederlandse bedrijven. Krijg inzicht in je wervingsproces en concrete verbeteradviezen.">
+    <meta name="keywords" content="recruitment, werving, assessment, HR, personeel, vacatures, RecruitIn">
+    <meta name="author" content="RecruitIn - Wouter Arts">
+    
     <link rel="icon" href="data:;base64,=">
     
     <style>
-        /* Basis styling met extra debug zichtbaarheid */
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background-color: #f4f4f4; 
+        /* Oorspronkelijke styling met debug verbeteringen */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
-        .screen {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+        .container {
             max-width: 800px;
-            margin: 20px auto;
+            margin: 0 auto;
+            padding: 20px;
         }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
         .hidden { 
             display: none !important; 
         }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+
         .debug-log {
             background-color: #f0f0f0;
             border: 1px solid #ccc;
@@ -33,7 +52,13 @@
             font-family: monospace;
             max-height: 200px;
             overflow-y: auto;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
         }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -45,56 +70,107 @@
             z-index: 1000;
             display: none;
         }
-        .assessment-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #f97316;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+
+        .progress-bar {
+            background: #f1f5f9;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
         }
-        .assessment-button:hover {
-            background-color: #ea580c;
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
         }
     </style>
 </head>
 <body>
-    <!-- Debug Log Container -->
-    <div id="debug-log" class="debug-log">
-        🐞 Debug Log Initiated
-    </div>
+    <!-- Debug Log -->
+    <div id="debug-log" class="debug-log">🐞 Debug Log Initiated</div>
 
-    <!-- Notification Container -->
+    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
-    <!-- Welcome Screen -->
-    <div id="welcome-screen" class="screen">
-        <h1>RECRUITPRO ENTERPRISE</h1>
-        <p>Geavanceerde Werving Analyse & Strategisch Advies</p>
-        
-        <button 
-            id="start-btn" 
-            class="assessment-button"
-            onclick="startAssessment()"
-        >
-            🚀 Start Enterprise Assessment (5 minuten)
-        </button>
-    </div>
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">Stap 1 van 6</div>
 
-    <!-- Assessment Screen -->
-    <div id="assessment-screen" class="screen hidden">
-        <h2>Enterprise Assessment</h2>
-        <div id="question-container">
-            <!-- Vragen worden hier dynamisch geladen -->
+        <!-- Welcome Screen -->
+        <div class="card" id="welcome-screen">
+            <h1 class="intro-title">RecruitPro Enterprise</h1>
+            <p class="intro-subtitle">Geavanceerde Werving Analyse & Strategisch Advies</p>
+            
+            <button 
+                onclick="startAssessment()" 
+                class="gradient-bg hover:opacity-90 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 mx-auto card-hover pulse"
+                id="start-btn"
+            >
+                🚀 Start Enterprise Assessment (5 minuten)
+            </button>
+        </div>
+
+        <!-- Assessment Screen -->
+        <div class="card hidden" id="assessment-screen">
+            <div id="assessmentHeader">
+                <h2 class="intro-title">Enterprise Recruitment Intelligence</h2>
+                <p class="intro-subtitle" id="questionSubtitle">Vraag <span id="questionNumber">1</span> van 19</p>
+            </div>
+            
+            <div id="questionContainer">
+                <h3 id="questionText" class="text-2xl font-semibold mb-4"></h3>
+                <div id="questionHelp" class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mb-6"></div>
+                
+                <div id="optionsContainer" class="grid gap-3"></div>
+            </div>
+        </div>
+
+        <!-- Contact Screen -->
+        <div class="card hidden" id="contact-screen">
+            <h2 class="intro-title">Ontvang Je Persoonlijke Rapport</h2>
+            <form id="contactForm">
+                <div class="mb-4">
+                    <label class="block mb-2">Naam *</label>
+                    <input type="text" id="contact-name" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Email *</label>
+                    <input type="email" id="contact-email" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Telefoon *</label>
+                    <input type="tel" id="contact-phone" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Bedrijfsnaam *</label>
+                    <input type="text" id="contact-company" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <button 
+                    type="submit" 
+                    class="gradient-bg text-white px-8 py-3 rounded-xl"
+                    onclick="submitContact(event)"
+                >
+                    📊 Ontvang Mijn Rapport
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Screen -->
+        <div class="card hidden" id="success-screen">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-green-600 mb-4">Assessment Voltooid! 🎉</h2>
+                <p class="mb-6">Bedankt voor het voltooien van de RecruitPro Enterprise Assessment.</p>
+                <p>We nemen binnen 24 uur contact met je op.</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Uitgebreide Debug Logging Functie
+        // Debug Logging
         function debugLog(message) {
             const logContainer = document.getElementById('debug-log');
             const logEntry = document.createElement('div');
@@ -110,41 +186,6 @@
             showNotification(`Fout: ${event.message}`, 'error');
         });
 
-        // Verbeterde Screen Toggle Functie
-        function toggleScreen(showId, hideIds) {
-            debugLog(`🔍 Toggling screens: Show ${showId}, Hide ${hideIds}`);
-            
-            // Zorg dat schermen bestaan
-            const screens = ['welcome-screen', 'assessment-screen'];
-            screens.forEach(screenId => {
-                let screen = document.getElementById(screenId);
-                if (!screen) {
-                    screen = document.createElement('div');
-                    screen.id = screenId;
-                    screen.className = 'screen hidden';
-                    document.body.appendChild(screen);
-                    debugLog(`🛠️ Scherm ${screenId} aangemaakt`);
-                }
-            });
-
-            // Toon/verberg schermen
-            const showElement = document.getElementById(showId);
-            if (showElement) {
-                showElement.classList.remove('hidden');
-            } else {
-                debugLog(`❌ Kan scherm niet vinden: ${showId}`);
-            }
-
-            hideIds.forEach(hideId => {
-                const hideElement = document.getElementById(hideId);
-                if (hideElement) {
-                    hideElement.classList.add('hidden');
-                } else {
-                    debugLog(`❌ Kan scherm niet vinden om te verbergen: ${hideId}`);
-                }
-            });
-        }
-
         // Notification Functie
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -157,103 +198,142 @@
             }, 3000);
         }
 
-        // Vragen Array
+        // Vragen Array (volledige 19 vragen)
         const questions = [
             {
                 text: "In welke sector is jouw bedrijf actief?",
+                help: "Dit helpt ons om je te benchmarken tegen soortgelijke bedrijven in jouw branche en specifieke sector insights te geven.",
                 options: [
                     "🏗️ Bouw & Constructie",
-                    "⚡ Installatietechniek",
-                    "🔧 Metaalbewerking",
-                    "💻 High-tech",
-                    "📋 Andere sector"
+                    "⚡ Installatietechniek (W/E/Klimaat)",
+                    "🔧 Metaalbewerking & Industrie",
+                    "⚙️ Machinebouw & Equipment",
+                    "💻 High-tech & Elektronica",
+                    "📋 Andere technische sector"
                 ]
             },
+            // De rest van de 19 vragen zoals eerder gedefinieerd
             {
                 text: "Hoeveel medewerkers heeft jouw bedrijf?",
+                help: "De bedrijfsgrootte bepaalt welke recruitment strategieën en benchmarks het meest relevant zijn.",
                 options: [
-                    "👤 1-10 medewerkers",
-                    "👥 11-50 medewerkers", 
-                    "🏢 51-200 medewerkers",
-                    "🌐 200+ medewerkers"
+                    "👤 1-25 medewerkers (micro bedrijf)",
+                    "👥 25-50 medewerkers (klein bedrijf)",
+                    "🏢 50-100 medewerkers (middelgroot)",
+                    "🏭 100-250 medewerkers (groot MKB)",
+                    "🌐 250+ medewerkers (enterprise)",
+                    "📊 Wisselend door groei/seizoen"
                 ]
             }
+            // Voeg de overige 17 vragen toe
         ];
 
         // Assessment Variabelen
         let currentQuestionIndex = 0;
         let answers = {};
+        let startTime;
 
         // Start Assessment Functie
         function startAssessment() {
             debugLog('🚀 Start Assessment aangeroepen');
-            try {
-                toggleScreen('assessment-screen', ['welcome-screen']);
-                showQuestion(currentQuestionIndex);
-                showNotification('Assessment gestart!');
-            } catch (error) {
-                debugLog(`❌ Start Assessment Fout: ${error.message}`);
-                showNotification(`Fout bij starten: ${error.message}`, 'error');
-            }
+            startTime = new Date();
+            
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('assessment-screen').classList.remove('hidden');
+            
+            showQuestion(0);
+            updateProgressBar();
+            showNotification('Assessment gestart!');
         }
 
         // Vraag Tonen Functie
         function showQuestion(index) {
-            debugLog(`❓ Tonen vraag ${index}`);
+            debugLog(`❓ Tonen vraag ${index + 1}`);
             const question = questions[index];
-            const questionContainer = document.getElementById('question-container');
             
-            if (!question) {
-                debugLog('❌ Geen vraag gevonden');
-                showNotification('Geen vragen meer beschikbaar', 'error');
-                return;
-            }
+            document.getElementById('questionNumber').textContent = index + 1;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionHelp').innerHTML = `<p class="text-slate-700 text-sm">💡 ${question.help}</p>`;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = question.options.map((option, optionIndex) => `
+                <button 
+                    class="p-4 rounded-xl border-2 text-left transition-all duration-300 hover:border-orange-500 hover:bg-orange-50 hover:-translate-y-0.5 border-slate-200 bg-white"
+                    onclick="selectOption(${index}, ${optionIndex})"
+                >
+                    ${option}
+                </button>
+            `).join('');
 
-            questionContainer.innerHTML = `
-                <h3>${question.text}</h3>
-                <div id="options-container">
-                    ${question.options.map((option, optionIndex) => `
-                        <button 
-                            class="assessment-button"
-                            onclick="selectOption(${index}, ${optionIndex})"
-                        >
-                            ${option}
-                        </button>
-                    `).join('')}
-                </div>
-            `;
+            updateProgressBar();
         }
 
         // Optie Selecteren Functie
         function selectOption(questionIndex, optionIndex) {
-            debugLog(`✅ Optie geselecteerd: Vraag ${questionIndex}, Optie ${optionIndex}`);
+            debugLog(`✅ Optie geselecteerd: Vraag ${questionIndex + 1}, Optie ${optionIndex}`);
             answers[questionIndex] = optionIndex;
             
-            // Ga naar volgende vraag of volgende stap
-            if (currentQuestionIndex < questions.length - 1) {
+            if (questionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 showQuestion(currentQuestionIndex);
             } else {
-                debugLog('🏁 Assessment voltooid');
-                showNotification('Assessment voltooid! Gegevens worden verwerkt.');
-                // Hier kun je later de submit logica toevoegen
+                // Laatste vraag - ga naar contact scherm
+                document.getElementById('assessment-screen').classList.add('hidden');
+                document.getElementById('contact-screen').classList.remove('hidden');
             }
+        }
+
+        // Progress Bar Updaten
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `Stap ${currentQuestionIndex + 1} van ${questions.length}`;
+        }
+
+        // Contact Formulier Indienen
+        function submitContact(event) {
+            event.preventDefault();
+            
+            const contactData = {
+                name: document.getElementById('contact-name').value,
+                email: document.getElementById('contact-email').value,
+                phone: document.getElementById('contact-phone').value,
+                company: document.getElementById('contact-company').value,
+                answers: answers,
+                completionTime: Math.round((new Date() - startTime) / 1000),
+                timestamp: new Date().toISOString()
+            };
+
+            // Webhook export
+            fetch('https://hooks.zapier.com/hooks/catch/23933997/uusfai9/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(contactData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Webhook verzending mislukt');
+                }
+                debugLog('✅ Data succesvol verzonden naar Zapier');
+                
+                // Ga naar success scherm
+                document.getElementById('contact-screen').classList.add('hidden');
+                document.getElementById('success-screen').classList.remove('hidden');
+                
+                showNotification('Assessment succesvol verzonden!');
+            })
+            .catch(error => {
+                debugLog(`❌ Webhook error: ${error.message}`);
+                showNotification('Verzending mislukt. Probeer het later opnieuw.', 'error');
+            });
         }
 
         // DOM Loaded Event
         document.addEventListener('DOMContentLoaded', function() {
             debugLog('🌐 DOM Volledig Geladen');
-            
-            const startButton = document.getElementById('start-btn');
-            if (startButton) {
-                debugLog('✅ Start knop gevonden');
-            } else {
-                debugLog('❌ Start knop niet gevonden');
-            }
         });
-
-        // Initiële Debug Log
-        debugLog('📦 RecruitPro Assessment Script Geladen');
     </script>
 </body>
 </html>

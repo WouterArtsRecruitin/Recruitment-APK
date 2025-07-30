@@ -836,3 +836,28 @@
     </script>
 </body>
 </html>
+<script>
+    // Alle bestaande assessment functies...
+
+    // NIEUWE functies HIERONDER toevoegen
+    function adminExportAssessmentData() {
+        // Volledige export functie
+    }
+
+    function convertToCSV(data) {
+        // CSV conversie functie
+    }
+
+    function formatTextExport(data) {
+        // Tekst export functie
+    }
+
+    // Bestaande showSuccessScreen() functie bijwerken
+    function showSuccessScreen() {
+        document.getElementById('contact-screen').classList.add('hidden');
+        document.getElementById('success-screen').classList.remove('hidden');
+        
+        // Admin export trigger toevoegen
+        adminExportAssessmentData();
+    }
+</script>

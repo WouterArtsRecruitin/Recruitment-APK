@@ -666,13 +666,16 @@
             }, 5000);
         }
 
-        function startAssessment() {
-            startTime = new Date();
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('assessment-screen').classList.remove('hidden');
-            showQuestion(0);
-            showNotification('Assessment Gestart', 'Beantwoord alle vragen voor een volledig rapport', 'success');
-        }
+        <script>
+    // ZORG DAT ALLE FUNCTIES VOOR HET GEBRUIK GEDEFINIEERD ZIJN
+    function startAssessment() {
+        startTime = new Date();
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('assessment-screen').classList.remove('hidden');
+        showQuestion(0);
+        showNotification('Assessment Gestart', 'Beantwoord alle vragen voor een volledig rapport', 'success');
+    }
+
 
         function showQuestion(index) {
             const question = questions[index];

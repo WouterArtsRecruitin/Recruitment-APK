@@ -791,32 +791,48 @@
         }
 
         function submitContact() {
-            const contactData = {
-                name: document.getElementById('contact-name').value.trim(),
-                email: document.getElementById('contact-email').value.trim(),
-                phone: document.getElementById('contact-phone').value.trim(),
-                company: document.getElementById('contact-company').value.trim(),
-                answers: answers,
-                completionTime: Math.round((new Date() - startTime) / 1000),
-                timestamp: new Date().toISOString(),
-                source: 'RecruitPro Assessment',
-                url: window.location.href
-            };
-            
-            // Log for debugging
-            console.log('🎯 Assessment completed:', contactData);
-            
-            // Store in localStorage for backup
-            localStorage.setItem('recruitpro_assessment', JSON.stringify(contactData));
-            
-            // Here you would send to your backend/email service
-            // For now, we show success and can manually process
-            
-            document.getElementById('contact-screen').classList.add('hidden');
-            document.getElementById('success-screen').classList.remove('hidden');
-            
-            showNotification('Assessment Voltooid!', `Gegevens van ${contactData.name} zijn opgeslagen`, 'success');
+    const contactData = {
+        name: document.getElementById('contact-name').value.trim(),
+        email: document.getElementById('contact-email').value.trim(),
+        phone: document.getElementById('contact-phone').value.trim(),
+        company: document.getElementById('contact-company').value.trim(),
+        answers: answers,
+        completionTime: Math.round((new Date() - startTime) / 1000),
+        timestamp: new Date().toISOString(),
+        source: 'RecruitPro Assessment',
+        url: window.location.href
+    };
+    
+    // Log for debugging
+    console.log('🎯 Assessment completed:', contactData);
+    
+    // Store in localStorage for backup
+    localStorage.setItem('recruitpro_assessment', JSON.stringify(contactData));
+    
+    // Webhook toevoegen
+    fetch('https://hooks.zapier.com/hooks/catch/23933997/uujpa1d/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Webhook verzending mislukt');
         }
+        console.log('✅ Data succesvol verzonden naar Zapier');
+    })
+    .catch(error => {
+        console.error('❌ Webhook error:', error);
+        showNotification('Verzending mislukt', 'Probeer het later opnieuw', 'error');
+    });
+    
+    document.getElementById('contact-screen').classList.add('hidden');
+    document.getElementById('success-screen').classList.remove('hidden');
+    
+    showNotification('Assessment Voltooid!', `Gegevens van ${contactData.name} zijn opgeslagen`, 'success');
+}
     </script>
 </body>
 </html>

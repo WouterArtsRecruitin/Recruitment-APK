@@ -1726,6 +1726,22 @@
         document.getElementById('success-screen').classList.remove('hidden');
         
         // Admin export trigger toevoegen
-        adminExportAssessmentData();
+        adminExportAssessmentData();// Plaats deze code helemaal aan het einde van je script, NA alle andere functies
+window.addEventListener('error', (event) => {
+    console.error('🚨 Systeemfout:', event.error);
+    alert('Er is een onverwachte fout opgetreden. Herlaad de pagina.');
+});
+
+// Optionele globale fout logging
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('🔥 Global Error:', {
+        message, 
+        source, 
+        lineno, 
+        colno, 
+        error
+    });
+    return false;
+};
     }
 </script>

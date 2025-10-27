@@ -19,7 +19,9 @@ const CONFIG = {
         name: 'FlowMaster Pro V4',
         url: 'https://recruitmentapk.nl',
         supportEmail: 'info@recruitmentapk.nl',
-        calendlyUrl: 'https://calendly.com/wouter-arts-/recruitment-apk-advies'
+        calendlyUrl: 'https://calendly.com/wouter-arts-/recruitment-apk-advies',
+        phone: '+31 (0)12 345 6789',  // UPDATE met echt Recruitin telefoonnummer
+        whatsapp: '+31612345678'       // UPDATE met echt WhatsApp nummer
     },
 
     // Admin email detectie

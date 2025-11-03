@@ -10,20 +10,20 @@
    ======================================== */
 
 :root {
-    /* Recruitin Brand Colors - Officiële Huisstijl */
-    --color-primary: #EF7D00;        /* Recruitin Oranje - Hoofdkleur */
-    --color-primary-light: #FF9933;  /* Lichter Oranje */
-    --color-primary-dark: #CC6A00;   /* Donker Oranje */
+    /* Recruitin Brand Colors - Officiële Huisstijl (CORRECT) */
+    --color-primary: #FF6B35;        /* Recruitin Oranje - Hoofdkleur */
+    --color-primary-light: #FF8C5C;  /* Lichter Oranje */
+    --color-primary-dark: #E55A24;   /* Donker Oranje */
 
-    /* Recruitin Grijs Kleuren */
-    --color-secondary: #4B4F51;      /* Recruitin Grijs Donker */
-    --color-secondary-light: #77797B; /* Recruitin Grijs Licht */
-    --color-secondary-dark: #2D3032;  /* Extra Donker Grijs */
+    /* Recruitin Grijs Kleuren (CORRECT) */
+    --color-secondary: #444444;      /* Recruitin Donkergrijs */
+    --color-secondary-light: #666666; /* Recruitin Grijs Licht */
+    --color-secondary-dark: #222222;  /* Extra Donker Grijs */
 
     /* Accent Colors - Gebaseerd op Recruitin Oranje */
-    --color-accent: #EF7D00;         /* Recruitin Oranje voor CTAs */
-    --color-accent-light: #FF9933;   /* Licht Oranje hover states */
-    --color-accent-dark: #CC6A00;    /* Donker Oranje active states */
+    --color-accent: #FF6B35;         /* Recruitin Oranje voor CTAs */
+    --color-accent-light: #FF8C5C;   /* Licht Oranje hover states */
+    --color-accent-dark: #E55A24;    /* Donker Oranje active states */
 
     /* Success & Status */
     --color-success: #10B981;        /* Green */
@@ -31,20 +31,20 @@
     --color-danger: #EF4444;         /* Red */
     --color-info: #3B82F6;           /* Blue */
 
-    /* Neutrals - Met Recruitin Grijs */
-    --color-text-primary: #4B4F51;    /* Recruitin Grijs Donker */
-    --color-text-secondary: #77797B;  /* Recruitin Grijs Licht */
-    --color-text-muted: #9CA3AF;
+    /* Neutrals - Met Recruitin Grijs (CORRECT) */
+    --color-text-primary: #444444;    /* Recruitin Donkergrijs */
+    --color-text-secondary: #666666;  /* Recruitin Grijs Licht */
+    --color-text-muted: #999999;
     --color-background: #FFFFFF;
     --color-background-alt: #F9FAFB;
     --color-border: #E5E7EB;
     --color-border-light: #F3F4F6;
 
-    /* Gradients - Recruitin Oranje Themed */
-    --gradient-primary: linear-gradient(135deg, #EF7D00 0%, #FF9933 100%);
-    --gradient-secondary: linear-gradient(135deg, #4B4F51 0%, #77797B 100%);
-    --gradient-accent: linear-gradient(135deg, #EF7D00 0%, #FF9933 100%);
-    --gradient-hero: linear-gradient(135deg, #4B4F51 0%, #EF7D00 50%, #FF9933 100%);
+    /* Gradients - Recruitin Oranje Themed (CORRECT) */
+    --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #FF8C5C 100%);
+    --gradient-secondary: linear-gradient(135deg, #444444 0%, #666666 100%);
+    --gradient-accent: linear-gradient(135deg, #FF6B35 0%, #FF8C5C 100%);
+    --gradient-hero: linear-gradient(135deg, #444444 0%, #FF6B35 50%, #FF8C5C 100%);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -802,7 +802,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(75, 79, 81, 0.95);  /* Recruitin Grijs Donker */
+    background: rgba(68, 68, 68, 0.95);  /* Recruitin Donkergrijs #444444 */
     display: flex;
     align-items: center;
     justify-content: center;

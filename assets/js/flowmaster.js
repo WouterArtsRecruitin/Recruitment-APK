@@ -461,16 +461,41 @@ const FlowMaster = {
         this.showLoading(true);
 
         try {
-            // Submit via PHP API
-            const response = await fetch('/api/submit-assessment.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(contactData)
-            });
+            // Try new API endpoint first
+            let response;
+            let result;
 
-            const result = await response.json();
+            try {
+                response = await fetch('/api/submit-assessment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('API endpoint not available');
+                }
+
+                result = await response.json();
+            } catch (apiError) {
+                // Fallback to root endpoint if /api/ doesn't exist
+                console.log('Trying fallback endpoint...');
+                response = await fetch('/submit_assessment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.prepareLegacySubmissionData())
+                });
+
+                if (!response.ok) {
+                    throw new Error('Both endpoints failed');
+                }
+
+                result = await response.json();
+            }
 
             if (result.success) {
                 this.showSuccessMessage(contactData);
@@ -479,10 +504,23 @@ const FlowMaster = {
             }
         } catch (error) {
             console.error('Submission error:', error);
-            this.showError('Er is een fout opgetreden. Probeer het opnieuw.');
+            this.showError('Er is een fout opgetreden. Probeer het opnieuw of neem contact op via telefoon: +31 6 14314593');
         } finally {
             this.showLoading(false);
         }
+    },
+
+    prepareLegacySubmissionData: function() {
+        // Format for old submit_assessment.php endpoint
+        return {
+            name: document.getElementById('contact-name')?.value.trim() || '',
+            email: document.getElementById('contact-email')?.value.trim() || '',
+            phone: document.getElementById('contact-phone')?.value.trim() || '',
+            company: document.getElementById('contact-company')?.value.trim() || '',
+            answers: this.formData.answers,
+            completionTime: 0,
+            timestamp: new Date().toISOString()
+        };
     },
 
     prepareSubmissionData: function() {
@@ -568,19 +606,30 @@ const FlowMaster = {
     },
 
     showSuccessMessage: function(contactData) {
+        // Ensure we have safe defaults
+        const name = contactData?.name || 'daar';
+        const score = contactData?.assessment_score || this.formData.totalScore || 0;
+        const category = contactData?.score_category || this.getScoreCategory(score);
+        const urgency = contactData?.urgency_level || 'MEDIUM';
+        const leadScore = contactData?.lead_score || 50;
+        const painLevel = contactData?.pain_level || 'MEDIUM';
+        const calendlyUrl = (typeof CONFIG !== 'undefined' && CONFIG.site?.calendlyUrl)
+            ? CONFIG.site.calendlyUrl
+            : 'https://calendly.com/wouter-arts-/recruitment-apk-advies';
+
         const successHtml = `
             <div class="card" id="successCard">
                 <div class="success-state">
                     <div class="success-icon">🎉</div>
                     <h2 class="success-title">Assessment Succesvol Voltooid!</h2>
                     <p class="success-message">
-                        Bedankt ${contactData.name}! Je FlowMaster assessment is succesvol voltooid.
+                        Bedankt ${name}! Je FlowMaster assessment is succesvol voltooid.
                         <br><br>
                         <strong>🎯 Je Assessment Resultaten:</strong><br>
-                        • <strong>Assessment Score:</strong> ${contactData.assessment_score}% (${contactData.score_category})<br>
-                        • <strong>Urgentie Level:</strong> ${contactData.urgency_level}<br>
-                        • <strong>Lead Score:</strong> ${contactData.lead_score}/100<br>
-                        • <strong>Pijn Level:</strong> ${contactData.pain_level}
+                        • <strong>Assessment Score:</strong> ${score}% (${category})<br>
+                        • <strong>Urgentie Level:</strong> ${urgency}<br>
+                        • <strong>Lead Score:</strong> ${leadScore}/100<br>
+                        • <strong>Pijn Level:</strong> ${painLevel}
                         <br><br>
                         <strong>📞 Vervolgstappen:</strong><br>
                         ✅ We analyseren je assessment gegevens<br>
@@ -593,15 +642,27 @@ const FlowMaster = {
                         <button class="cta-button" onclick="location.reload()" style="flex: 1; min-width: 200px;">
                             🔄 Nieuwe Assessment
                         </button>
-                        <button class="download-button" onclick="window.open('${CONFIG.site.calendlyUrl}')" style="flex: 1; min-width: 200px;">
+                        <button class="cta-button" onclick="window.open('${calendlyUrl}', '_blank')" style="flex: 1; min-width: 200px; background: var(--gradient-secondary);">
                             📅 Boek Gesprek
                         </button>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; color: #666;">
+                            <strong>Direct contact?</strong><br>
+                            📞 <a href="tel:+31614314593" style="color: #FF6B35;">06-14314593</a> |
+                            📧 <a href="mailto:warts@recruitin.nl" style="color: #FF6B35;">warts@recruitin.nl</a>
+                        </p>
                     </div>
                 </div>
             </div>
         `;
 
-        document.querySelector('.container').innerHTML = successHtml;
+        const container = document.querySelector('.container');
+        if (container) {
+            container.innerHTML = successHtml;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 };
 

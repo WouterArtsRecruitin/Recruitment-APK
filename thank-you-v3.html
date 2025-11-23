@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedankt! | RecruitmentAPK V3</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Bedankt voor het invullen van de Recruitment APK. Je rapport komt binnen 24 uur.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .bg-radial-gradient {
+            background: radial-gradient(circle at top, rgba(30, 58, 138, 0.2), rgb(2, 6, 23) 50%, rgb(2, 6, 23) 100%);
+        }
+
+        .noise-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.2;
+            mix-blend-mode: soft-light;
+        }
+
+        .grid-pattern {
+            background-image:
+                linear-gradient(to right, rgba(128, 128, 128, 0.07) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(128, 128, 128, 0.07) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React & ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Framer Motion from CDN -->
+    <script src="https://unpkg.com/framer-motion@11/dist/framer-motion.js"></script>
+
+    <!-- Lucide Icons (we'll use simple SVG instead for simplicity) -->
+
+    <script type="text/javascript">
+        const { useState, useEffect, createElement: h } = React;
+        const { createRoot } = ReactDOM;
+        const { motion } = Motion;
+
+        // Simple icon components using inline SVG
+        const CheckCircle2 = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('path', { key: 1, d: "M22 11.08V12a10 10 0 1 1-5.93-9.14" }),
+            h('polyline', { key: 2, points: "22 4 12 14.01 9 11.01" })
+        ]);
+
+        const ArrowRight = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('line', { key: 1, x1: "5", y1: "12", x2: "19", y2: "12" }),
+            h('polyline', { key: 2, points: "12 5 19 12 12 19" })
+        ]);
+
+        const Calendar = ({ className = "w-5 h-5" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('rect', { key: 1, x: "3", y: "4", width: "18", height: "18", rx: "2", ry: "2" }),
+            h('line', { key: 2, x1: "16", y1: "2", x2: "16", y2: "6" }),
+            h('line', { key: 3, x1: "8", y1: "2", x2: "8", y2: "6" }),
+            h('line', { key: 4, x1: "3", y1: "10", x2: "21", y2: "10" })
+        ]);
+
+        const Phone = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('path', { key: 1, d: "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" })
+        ]);
+
+        const MessageCircle = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('path', { key: 1, d: "M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" })
+        ]);
+
+        const ShieldCheck = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('path', { key: 1, d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" }),
+            h('polyline', { key: 2, points: "9 12 11 14 15 10" })
+        ]);
+
+        const Building2 = ({ className = "w-4 h-4" }) => h('svg', {
+            className,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+        }, [
+            h('path', { key: 1, d: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" }),
+            h('path', { key: 2, d: "M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" }),
+            h('path', { key: 3, d: "M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" }),
+            h('path', { key: 4, d: "M10 6h4" }),
+            h('path', { key: 5, d: "M10 10h4" }),
+            h('path', { key: 6, d: "M10 14h4" }),
+            h('path', { key: 7, d: "M10 18h4" })
+        ]);
+
+        // Button component
+        const Button = ({ children, className = "", onClick, size = "default", ...props }) => {
+            const sizeClasses = {
+                default: "px-4 py-2 text-base",
+                lg: "px-6 py-3 text-lg",
+            };
+
+            return h('button', {
+                className: `inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ${sizeClasses[size]} ${className}`,
+                onClick,
+                ...props
+            }, children);
+        };
+
+        // Meta Pixel tracking function
+        const trackFbEvent = (eventName, params = {}) => {
+            if (typeof fbq !== 'undefined') {
+                fbq('track', eventName, params);
+            }
+            console.log('FB Event:', eventName, params);
+        };
+
+        // TYPEFORM ID
+        const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
+
+        // Logo - using a simple placeholder
+        const logoUrl = "/assets/images/logo.png";
+
+        function Assessment() {
+            const [currentStep, setCurrentStep] = useState('welcome');
+            const [userData, setUserData] = useState({ firstName: '', email: '' });
+
+            useEffect(() => {
+                // Check for URL parameters
+                const params = new URLSearchParams(window.location.search);
+
+                const stepParam = params.get('step');
+                const firstName = params.get('first_name') || params.get('name') || '';
+                const email = params.get('email') || '';
+
+                if (stepParam === 'success' || params.get('typeform-submission-id')) {
+                    setUserData({ firstName, email });
+                    setCurrentStep('success');
+                    trackFbEvent('CompleteRegistration', { content_name: 'Recruitment Quickscan' });
+                }
+            }, []);
+
+            // Re-initialize Typeform when switching to assessment step
+            useEffect(() => {
+                if (currentStep === 'assessment') {
+                    const scriptSrc = "//embed.typeform.com/next/embed.js";
+
+                    if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
+                        const script = document.createElement('script');
+                        script.src = scriptSrc;
+                        script.async = true;
+                        document.body.appendChild(script);
+                    } else {
+                        if (window.tf && typeof window.tf.load === 'function') {
+                            window.tf.load();
+                        }
+                    }
+                }
+            }, [currentStep]);
+
+            const handleStart = () => {
+                trackFbEvent('InitiateCheckout', { content_name: 'Recruitment Quickscan' });
+                setCurrentStep('assessment');
+            };
+
+            // Success View Component
+            const SuccessView = () => {
+                return h('div', {
+                    className: "min-h-screen relative flex items-center justify-center p-4 bg-slate-950 overflow-hidden font-sans text-slate-200"
+                }, [
+                    // Background
+                    h('div', {
+                        key: 'bg',
+                        className: "absolute inset-0 z-0"
+                    }, [
+                        h('div', { key: 'bg1', className: "absolute inset-0 bg-radial-gradient" }),
+                        h('div', { key: 'bg2', className: "absolute inset-0 noise-texture" })
+                    ]),
+
+                    // Main content
+                    h(motion.div, {
+                        key: 'content',
+                        initial: { opacity: 0, scale: 0.95 },
+                        animate: { opacity: 1, scale: 1 },
+                        className: "relative z-10 w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-center animate-slide-up"
+                    }, [
+                        h('h2', {
+                            key: 'title',
+                            className: "text-2xl font-bold text-white mb-4"
+                        }, 'Bedankt!'),
+
+                        h('p', {
+                            key: 'subtitle',
+                            className: "text-slate-300 mb-6 text-sm leading-relaxed"
+                        }, 'Je Recruitment APK Rapport wordt nu gemaakt en komt binnen 24 uur in je inbox.'),
+
+                        // Email info box
+                        h('div', {
+                            key: 'email-box',
+                            className: "bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-8 text-sm"
+                        }, [
+                            h('p', { key: 'label', className: "font-medium text-blue-200 mb-1" }, '📧 Check je mail:'),
+                            h('p', { key: 'email', className: "text-slate-300 break-all" }, userData.email || 'je inbox'),
+                            h('p', { key: 'note', className: "text-xs text-slate-500 mt-2" }, '(check ook je spam!)')
+                        ]),
+
+                        h('div', { key: 'divider1', className: "w-full h-px bg-white/10 my-6" }),
+
+                        h('h3', { key: 'cta-title', className: "text-lg font-semibold text-white mb-4" }, 'Wil je direct aan de slag?'),
+
+                        // Calendly button
+                        h(Button, {
+                            key: 'calendly-btn',
+                            className: "w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 text-lg rounded-xl shadow-lg mb-8 transition-all",
+                            onClick: () => window.open('https://calendly.com/recruitin/kennismaking', '_blank')
+                        }, [
+                            h(Calendar, { key: 'icon', className: "mr-2 w-5 h-5" }),
+                            h('span', { key: 'text' }, 'Boek gratis 15-min gesprek')
+                        ]),
+
+                        h('div', { key: 'divider2', className: "w-full h-px bg-white/10 my-6" }),
+
+                        h('p', { key: 'contact-label', className: "text-sm text-slate-400 mb-4" }, 'Of neem anders contact op:'),
+
+                        // Contact links
+                        h('div', { key: 'contact-links', className: "flex flex-col gap-3" }, [
+                            h('a', {
+                                key: 'phone',
+                                href: "tel:0614314593",
+                                className: "flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5"
+                            }, [
+                                h(Phone, { key: 'icon', className: "w-4 h-4 text-green-500" }),
+                                h('span', { key: 'text' }, 'Bel: 06 14314593')
+                            ]),
+
+                            h('a', {
+                                key: 'whatsapp',
+                                href: `https://wa.me/31614314593?text=${encodeURIComponent("Hi Wouter, ik heb net het assessment ingevuld!")}`,
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                                className: "flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5"
+                            }, [
+                                h(MessageCircle, { key: 'icon', className: "w-4 h-4 text-green-500" }),
+                                h('span', { key: 'text' }, 'WhatsApp: 06 14314593')
+                            ]),
+
+                            h('p', {
+                                key: 'helper',
+                                className: "text-[10px] text-slate-500 italic"
+                            }, '(Opslaan & verstuur: "Hi Wouter, ik heb net het assessment ingevuld!")')
+                        ]),
+
+                        h('div', { key: 'divider3', className: "w-full h-px bg-white/10 my-6" }),
+
+                        h('p', {
+                            key: 'footer',
+                            className: "text-xs text-slate-500"
+                        }, 'Geen email na 24 uur? Bel 06 14314593')
+                    ])
+                ]);
+            };
+
+            // Trust Indicators Component
+            const TrustIndicators = () => {
+                return h('div', {
+                    className: "flex flex-wrap justify-center gap-4 mt-8 opacity-60 md:gap-8"
+                }, [
+                    h('div', {
+                        key: 1,
+                        className: "flex items-center gap-2 text-xs text-slate-400 uppercase tracking-wider font-medium"
+                    }, [
+                        h(ShieldCheck, { key: 'icon', className: "w-4 h-4 text-green-500" }),
+                        h('span', { key: 'text' }, '850+ Scans uitgevoerd')
+                    ]),
+                    h('div', {
+                        key: 2,
+                        className: "flex items-center gap-2 text-xs text-slate-400 uppercase tracking-wider font-medium"
+                    }, [
+                        h(Building2, { key: 'icon', className: "w-4 h-4 text-blue-500" }),
+                        h('span', { key: 'text' }, 'Gebruikt door top agencies')
+                    ])
+                ]);
+            };
+
+            // Value Checkmarks Component
+            const ValueCheckmarks = ({ centered = false }) => {
+                const items = ['Direct benchmark score', 'Bespaartips op maat', 'Gratis PDF Rapport'];
+
+                return h('div', {
+                    className: `flex flex-col sm:flex-row gap-3 sm:gap-6 mt-6 text-sm text-slate-300 ${centered ? 'items-center justify-center' : ''}`
+                }, items.map((item, i) =>
+                    h('div', {
+                        key: i,
+                        className: "flex items-center gap-2"
+                    }, [
+                        h('div', {
+                            key: 'icon-wrapper',
+                            className: "bg-green-500/20 p-1 rounded-full"
+                        }, h(CheckCircle2, { key: 'icon', className: "w-3 h-3 text-green-500" })),
+                        h('span', { key: 'text' }, item)
+                    ])
+                ));
+            };
+
+            // Welcome View (Variant A)
+            const WelcomeView = () => {
+                return h('div', {
+                    className: "min-h-screen relative flex items-center justify-center p-4 bg-slate-950 overflow-hidden font-sans"
+                }, [
+                    // Background
+                    h('div', {
+                        key: 'bg',
+                        className: "absolute inset-0 z-0"
+                    }, [
+                        h('div', { key: 'bg1', className: "absolute inset-0 bg-slate-950" }),
+                        h('div', {
+                            key: 'bg2',
+                            className: "absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full bg-blue-900/20 blur-[120px] opacity-50 pointer-events-none"
+                        }),
+                        h('div', { key: 'bg3', className: "absolute inset-0 grid-pattern" }),
+                        h('div', { key: 'bg4', className: "absolute inset-0 noise-texture" })
+                    ]),
+
+                    // Content
+                    h('div', {
+                        key: 'content',
+                        className: "relative z-10 w-full max-w-5xl mx-auto px-4 md:px-8 flex flex-col items-center text-center"
+                    }, [
+                        h(motion.div, {
+                            key: 'motion-wrapper',
+                            initial: { opacity: 0, y: 20 },
+                            animate: { opacity: 1, y: 0 },
+                            transition: { duration: 0.8 }
+                        }, [
+                            // Title
+                            h('h1', {
+                                key: 'title',
+                                className: "text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter uppercase mb-4 drop-shadow-2xl"
+                            }, [
+                                'Recruitment ',
+                                h('span', {
+                                    key: 'apk',
+                                    className: "text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600"
+                                }, 'APK')
+                            ]),
+
+                            // Subtitle
+                            h('p', {
+                                key: 'subtitle',
+                                className: "text-lg md:text-xl text-slate-300 font-light max-w-3xl leading-relaxed mb-8"
+                            }, [
+                                'Stop met gissen. Start met weten. Doe de gratis check, beantwoord ',
+                                h('span', { key: 'highlight', className: "text-white font-medium" }, '10 korte vragen'),
+                                ' en ontdek binnen 2 minuten waar je budget lekt.'
+                            ]),
+
+                            // CTA Button
+                            h('div', {
+                                key: 'cta',
+                                className: "relative group inline-block mb-8"
+                            }, [
+                                h('div', {
+                                    key: 'glow',
+                                    className: "absolute -inset-1 bg-gradient-to-r from-orange-600 to-orange-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 -z-10"
+                                }),
+                                h(Button, {
+                                    key: 'button',
+                                    onClick: handleStart,
+                                    size: "lg",
+                                    className: "bg-orange-500 hover:bg-orange-600 text-white text-lg md:text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold tracking-wide w-full sm:w-auto"
+                                }, [
+                                    h('span', { key: 'text' }, 'Start Quickscan'),
+                                    h(ArrowRight, {
+                                        key: 'icon',
+                                        className: "ml-2 w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform inline-block"
+                                    })
+                                ])
+                            ]),
+
+                            // Value Checkmarks
+                            h(ValueCheckmarks, { key: 'checkmarks', centered: true }),
+
+                            // Trust Indicators
+                            h(TrustIndicators, { key: 'trust' }),
+
+                            // Logo
+                            h('div', {
+                                key: 'logo',
+                                className: "mt-12 opacity-60 hover:opacity-100 transition-all duration-500"
+                            }, h('a', {
+                                href: "https://recruitin.nl",
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                                className: "inline-block"
+                            }, h('img', {
+                                src: logoUrl,
+                                alt: "Recruitin",
+                                className: "h-8 mx-auto grayscale hover:grayscale-0 transition-all",
+                                onError: (e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.innerHTML = '<span class="text-orange-500 font-bold text-xl">Recruitin</span>';
+                                }
+                            })))
+                        ])
+                    ])
+                ]);
+            };
+
+            // Assessment View
+            const AssessmentView = () => {
+                return h('div', {
+                    className: "w-full h-screen bg-slate-900 flex flex-col"
+                }, [
+                    // Header
+                    h('div', {
+                        key: 'header',
+                        className: "flex items-center justify-between px-4 py-3 md:px-6 md:py-4 bg-slate-900/50 backdrop-blur-md border-b border-white/10 z-50 flex-none"
+                    }, [
+                        h('img', {
+                            key: 'logo',
+                            src: logoUrl,
+                            alt: "Recruitin",
+                            className: "h-5 md:h-6 opacity-80",
+                            onError: (e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.innerHTML = '<span class="text-orange-500 font-bold">Recruitin</span>';
+                            }
+                        }),
+                        h('button', {
+                            key: 'close',
+                            onClick: () => setCurrentStep('welcome'),
+                            className: "text-slate-400 hover:text-white transition-colors text-xs md:text-sm font-medium"
+                        }, 'Sluiten')
+                    ]),
+
+                    // Typeform Embed
+                    h('div', {
+                        key: 'typeform',
+                        className: "flex-1 w-full h-full bg-slate-900 relative overflow-hidden"
+                    }, h('div', {
+                        'data-tf-live': TYPEFORM_ID,
+                        className: "w-full h-full"
+                    }))
+                ]);
+            };
+
+            // Main render logic
+            if (currentStep === 'success') {
+                return h(SuccessView);
+            }
+
+            if (currentStep === 'assessment') {
+                return h(AssessmentView);
+            }
+
+            return h(WelcomeView);
+        }
+
+        // Render the app
+        const root = createRoot(document.getElementById('root'));
+        root.render(h(Assessment));
+    </script>
+
+    <!-- Meta Pixel Code (if needed) -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        // fbq('init', 'YOUR_PIXEL_ID');
+        // fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+</body>
+</html>

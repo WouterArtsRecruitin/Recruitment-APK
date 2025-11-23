@@ -99,6 +99,122 @@
             background-size: 24px 24px;
             mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
         }
+
+        /* Toast/Sonner Styles */
+        .toast-container {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            padding: 16px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            max-width: 356px;
+            animation: toastSlideIn 0.2s ease-out;
+        }
+
+        .toast.success {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .toast.error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .toast.info {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+
+        .toast-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .toast-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .toast-description {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.removing {
+            animation: toastSlideOut 0.2s ease-in forwards;
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -114,9 +230,121 @@
     <!-- Lucide Icons (we'll use simple SVG instead for simplicity) -->
 
     <script type="text/javascript">
-        const { useState, useEffect, createElement: h } = React;
+        const { useState, useEffect, useCallback, createElement: h } = React;
         const { createRoot } = ReactDOM;
         const { motion } = Motion;
+
+        // Toast Manager (Global State)
+        let toastId = 0;
+        const toastListeners = [];
+
+        const toastManager = {
+            toasts: [],
+            subscribe(listener) {
+                toastListeners.push(listener);
+                return () => {
+                    const index = toastListeners.indexOf(listener);
+                    if (index > -1) toastListeners.splice(index, 1);
+                };
+            },
+            notify() {
+                toastListeners.forEach(listener => listener([...this.toasts]));
+            },
+            add(toast) {
+                const id = ++toastId;
+                const newToast = { id, ...toast, createdAt: Date.now() };
+                this.toasts.push(newToast);
+                this.notify();
+
+                // Auto-remove after duration
+                const duration = toast.duration || 4000;
+                if (duration !== Infinity) {
+                    setTimeout(() => this.remove(id), duration);
+                }
+
+                return id;
+            },
+            remove(id) {
+                const index = this.toasts.findIndex(t => t.id === id);
+                if (index > -1) {
+                    this.toasts.splice(index, 1);
+                    this.notify();
+                }
+            }
+        };
+
+        // Toast API (Similar to sonner)
+        const toast = {
+            success: (title, options = {}) => toastManager.add({ type: 'success', title, ...options }),
+            error: (title, options = {}) => toastManager.add({ type: 'error', title, ...options }),
+            info: (title, options = {}) => toastManager.add({ type: 'info', title, ...options }),
+            message: (title, options = {}) => toastManager.add({ type: 'default', title, ...options })
+        };
+
+        // Toaster Component
+        function Toaster() {
+            const [toasts, setToasts] = useState([]);
+            const [removingToasts, setRemovingToasts] = useState(new Set());
+
+            useEffect(() => {
+                return toastManager.subscribe(setToasts);
+            }, []);
+
+            const handleClose = useCallback((id) => {
+                setRemovingToasts(prev => new Set([...prev, id]));
+                setTimeout(() => {
+                    toastManager.remove(id);
+                    setRemovingToasts(prev => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                    });
+                }, 200);
+            }, []);
+
+            const getIcon = (type) => {
+                switch (type) {
+                    case 'success': return '✓';
+                    case 'error': return '✕';
+                    case 'info': return 'ℹ';
+                    default: return '○';
+                }
+            };
+
+            return h('div', { className: 'toast-container' },
+                toasts.map(t =>
+                    h('div', {
+                        key: t.id,
+                        className: `toast ${t.type || 'default'} ${removingToasts.has(t.id) ? 'removing' : ''}`
+                    }, [
+                        h('div', { key: 'icon', className: 'toast-icon' }, getIcon(t.type)),
+                        h('div', { key: 'content', className: 'toast-content' }, [
+                            h('div', { key: 'title', className: 'toast-title' }, t.title),
+                            t.description && h('div', { key: 'desc', className: 'toast-description' }, t.description)
+                        ]),
+                        h('button', {
+                            key: 'close',
+                            className: 'toast-close',
+                            onClick: () => handleClose(t.id),
+                            'aria-label': 'Close'
+                        }, '×')
+                    ])
+                )
+            );
+        }
+
+        // MetaPixel Component
+        function MetaPixel() {
+            useEffect(() => {
+                // Meta Pixel is already loaded in the HTML
+                // This component just tracks the PageView if not already done
+                if (typeof fbq !== 'undefined') {
+                    console.log('✅ MetaPixel component mounted - tracking enabled');
+                }
+            }, []);
+
+            return null; // This component doesn't render anything
+        }
 
         // Simple icon components using inline SVG
         const CheckCircle2 = ({ className = "w-4 h-4" }) => h('svg', {
@@ -259,6 +487,13 @@
                     setUserData({ firstName, email });
                     setCurrentStep('success');
                     trackFbEvent('CompleteRegistration', { content_name: 'Recruitment Quickscan' });
+
+                    // Show success toast
+                    setTimeout(() => {
+                        toast.success('Assessment voltooid!', {
+                            description: 'Je rapport wordt nu gegenereerd en komt binnen 24 uur in je inbox.'
+                        });
+                    }, 500);
                 }
             }, []);
 
@@ -578,12 +813,23 @@
             return h(WelcomeView);
         }
 
+        // App Component (Main wrapper)
+        function App() {
+            return h('div', {
+                className: "min-h-screen bg-slate-50 font-sans text-slate-900"
+            }, [
+                h(MetaPixel, { key: 'pixel' }),
+                h(Assessment, { key: 'assessment' }),
+                h(Toaster, { key: 'toaster' })
+            ]);
+        }
+
         // Render the app
         const root = createRoot(document.getElementById('root'));
-        root.render(h(Assessment));
+        root.render(h(App));
     </script>
 
-    <!-- Meta Pixel Code (if needed) -->
+    <!-- Meta Pixel Code -->
     <script>
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -593,8 +839,18 @@
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
-        // fbq('init', 'YOUR_PIXEL_ID');
-        // fbq('track', 'PageView');
+
+        // Initialize Meta Pixel
+        // Replace 'YOUR_PIXEL_ID' with your actual Meta Pixel ID
+        const META_PIXEL_ID = 'YOUR_PIXEL_ID';
+
+        if (META_PIXEL_ID && META_PIXEL_ID !== 'YOUR_PIXEL_ID') {
+            fbq('init', META_PIXEL_ID);
+            fbq('track', 'PageView');
+            console.log('✅ Meta Pixel initialized:', META_PIXEL_ID);
+        } else {
+            console.log('⚠️ Meta Pixel ID not configured');
+        }
     </script>
     <noscript><img height="1" width="1" style="display:none"
         src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"

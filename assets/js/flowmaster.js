@@ -606,63 +606,23 @@ const FlowMaster = {
     },
 
     showSuccessMessage: function(contactData) {
-        // Ensure we have safe defaults
-        const name = contactData?.name || 'daar';
+        // Redirect to thank you page with personalization parameters
+        const name = contactData?.name || '';
+        const email = contactData?.email || '';
+        const company = contactData?.company || '';
+        const sector = contactData?.sector || this.formData.sector || '';
         const score = contactData?.assessment_score || this.formData.totalScore || 0;
-        const category = contactData?.score_category || this.getScoreCategory(score);
-        const urgency = contactData?.urgency_level || 'MEDIUM';
-        const leadScore = contactData?.lead_score || 50;
-        const painLevel = contactData?.pain_level || 'MEDIUM';
-        const calendlyUrl = (typeof CONFIG !== 'undefined' && CONFIG.site?.calendlyUrl)
-            ? CONFIG.site.calendlyUrl
-            : 'https://calendly.com/wouter-arts-/recruitment-apk-advies';
 
-        const successHtml = `
-            <div class="card" id="successCard">
-                <div class="success-state">
-                    <div class="success-icon">🎉</div>
-                    <h2 class="success-title">Assessment Succesvol Voltooid!</h2>
-                    <p class="success-message">
-                        Bedankt ${name}! Je FlowMaster assessment is succesvol voltooid.
-                        <br><br>
-                        <strong>🎯 Je Assessment Resultaten:</strong><br>
-                        • <strong>Assessment Score:</strong> ${score}% (${category})<br>
-                        • <strong>Urgentie Level:</strong> ${urgency}<br>
-                        • <strong>Lead Score:</strong> ${leadScore}/100<br>
-                        • <strong>Pijn Level:</strong> ${painLevel}
-                        <br><br>
-                        <strong>📞 Vervolgstappen:</strong><br>
-                        ✅ We analyseren je assessment gegevens<br>
-                        ✅ Je ontvangt binnen 24 uur een persoonlijk rapport<br>
-                        ✅ We nemen contact op voor een strategisch gesprek<br>
-                        ✅ Samen maken we een actieplan voor optimalisatie
-                    </p>
+        // Build URL parameters
+        const params = new URLSearchParams();
+        if (name) params.append('name', name);
+        if (email) params.append('email', email);
+        if (company) params.append('company', company);
+        if (sector) params.append('sector', sector);
+        if (score) params.append('score', score);
 
-                    <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <button class="cta-button" onclick="location.reload()" style="flex: 1; min-width: 200px;">
-                            🔄 Nieuwe Assessment
-                        </button>
-                        <button class="cta-button" onclick="window.open('${calendlyUrl}', '_blank')" style="flex: 1; min-width: 200px; background: var(--gradient-secondary);">
-                            📅 Boek Gesprek
-                        </button>
-                    </div>
-
-                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: center;">
-                        <p style="margin: 0; color: #666;">
-                            <strong>Direct contact?</strong><br>
-                            📞 <a href="tel:+31614314593" style="color: #FF6B35;">06-14314593</a> |
-                            📧 <a href="mailto:warts@recruitin.nl" style="color: #FF6B35;">warts@recruitin.nl</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const container = document.querySelector('.container');
-        if (container) {
-            container.innerHTML = successHtml;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        // Redirect to thank you page
+        window.location.href = '/thank-you.html?' + params.toString();
     }
 };
 

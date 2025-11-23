@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment Voltooid - Bedankt! | RecruitmentAPK</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Bedankt voor het invullen van de FlowMaster Assessment. Je rapport komt binnen 24 uur.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #cbd5e1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        /* Background Gradient - Recruitin Themed */
+        .background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(circle at top, rgba(255, 107, 53, 0.15) 0%, #1a1a1a 50%, #0a0a0a 100%);
+        }
+
+        .background::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(68, 68, 68, 0.1) 0%, transparent 50%);
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 480px;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(255, 107, 53, 0.1);
+            text-align: center;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Logo */
+        .logo {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8C5C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Success Icon */
+        .success-icon-wrapper {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 140, 92, 0.1) 100%);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+            position: relative;
+        }
+
+        /* Checkmark Icon using CSS */
+        .success-icon::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 40px;
+            border: solid #FF6B35;
+            border-width: 0 5px 5px 0;
+            transform: rotate(45deg);
+            margin-top: -8px;
+            filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.5));
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 20px rgba(255, 107, 53, 0);
+            }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: #FF8C5C;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Email Icon using CSS */
+        .email-icon {
+            width: 18px;
+            height: 14px;
+            border: 2px solid #FF8C5C;
+            border-radius: 3px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .email-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 18px;
+            height: 10px;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 7px solid #FF8C5C;
+        }
+
+        .info-box-email {
+            color: #ffffff;
+            word-break: break-all;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .info-box-note {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Divider */
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.3), transparent);
+            margin: 32px 0;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 15px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        /* Buttons */
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 12px;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .button:hover::before {
+            opacity: 1;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8C5C 100%);
+            color: white;
+            box-shadow:
+                0 10px 30px rgba(255, 107, 53, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        }
+
+        .button-primary:hover {
+            background: linear-gradient(135deg, #E55A24 0%, #FF6B35 100%);
+            box-shadow:
+                0 15px 40px rgba(255, 107, 53, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        /* Calendar Icon CSS */
+        .icon-calendar {
+            width: 22px;
+            height: 22px;
+            border: 2.5px solid currentColor;
+            border-radius: 4px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-calendar::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 3px;
+            right: 3px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 2px;
+        }
+
+        .icon-calendar::after {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 4px;
+            right: 4px;
+            height: 2px;
+            background: currentColor;
+        }
+
+        /* Contact Links */
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+            color: #cbd5e1;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .contact-link:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.3);
+            color: #FF8C5C;
+            transform: translateX(4px);
+        }
+
+        /* Phone Icon CSS */
+        .icon-phone {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid #10b981;
+            border-radius: 4px;
+            transform: rotate(-45deg);
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-phone::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        /* WhatsApp Icon CSS */
+        .icon-whatsapp {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid #10b981;
+            border-radius: 50%;
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-whatsapp::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            background: transparent;
+        }
+
+        /* Helper Text */
+        .helper-text {
+            font-size: 12px;
+            color: #64748b;
+            font-style: italic;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .stat-item {
+            padding: 16px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            font-weight: 800;
+            color: #FF6B35;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer-text {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-brand {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .footer-brand a {
+            color: #FF6B35;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-brand a:hover {
+            color: #FF8C5C;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .button {
+                padding: 16px 20px;
+                font-size: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .stat-number {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="background"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-text">RecruitmentAPK</div>
+        </div>
+
+        <!-- Success Icon -->
+        <div class="success-icon-wrapper">
+            <div class="success-icon"></div>
+        </div>
+
+        <!-- Heading -->
+        <h1 id="greeting">Perfect!</h1>
+        <p class="subtitle">Je <strong>FlowMaster Assessment</strong> is succesvol ontvangen. Je persoonlijke Recruitment Readiness Rapport wordt nu gemaakt en komt binnen <strong>24 uur</strong> in je inbox.</p>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">29</span>
+                <span class="stat-label">Vragen</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">24u</span>
+                <span class="stat-label">Rapport</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Gratis</span>
+            </div>
+        </div>
+
+        <!-- Email Info Box -->
+        <div class="info-box">
+            <div class="info-box-title">
+                <span class="email-icon"></span>
+                <span>Check je mailbox</span>
+            </div>
+            <p class="info-box-email" id="user-email">je inbox</p>
+            <p class="info-box-note">(vergeet niet je spam folder te checken!)</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- CTA Section -->
+        <h3 class="section-title">Wil je direct aan de slag?</h3>
+        <p class="section-subtitle">Boek een gratis adviesgesprek en ontvang direct eerste inzichten</p>
+
+        <!-- Primary CTA -->
+        <a href="https://calendly.com/wouter-arts-/recruitment-apk-advies" id="calendly-btn" class="button button-primary">
+            <span class="icon-calendar"></span>
+            <span>Boek Gratis Adviesgesprek</span>
+        </a>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Alternative Contact -->
+        <p class="section-subtitle">Of neem direct contact op:</p>
+
+        <div class="contact-links">
+            <a href="tel:+31614314593" class="contact-link">
+                <span class="icon-phone"></span>
+                <span>Bel direct: 06-14314593</span>
+            </a>
+
+            <a href="https://wa.me/31614314593" id="whatsapp-btn" class="contact-link">
+                <span class="icon-whatsapp"></span>
+                <span>WhatsApp: 06-14314593</span>
+            </a>
+        </div>
+
+        <p class="helper-text">💬 WhatsApp tip: "Hi Wouter, ik heb net de FlowMaster Assessment ingevuld!"</p>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Footer -->
+        <p class="footer-text">📧 Geen email binnen 24 uur? Neem contact op via 06-14314593</p>
+        <p class="footer-brand">Powered by <a href="https://www.recruitin.nl" target="_blank">Recruitin</a> | © 2025 RecruitmentAPK</p>
+    </div>
+
+    <script>
+        // Get URL parameters for personalization
+        const urlParams = new URLSearchParams(window.location.search);
+        const firstName = urlParams.get('first_name') || urlParams.get('name') || '';
+        const fullName = urlParams.get('full_name') || firstName;
+        const email = urlParams.get('email') || '';
+        const company = urlParams.get('company') || '';
+        const sector = urlParams.get('sector') || '';
+        const score = urlParams.get('score') || '';
+
+        // Personalize greeting
+        if (firstName) {
+            const firstNameOnly = firstName.split(' ')[0];
+            document.getElementById('greeting').textContent = `Perfect, ${firstNameOnly}! 🎉`;
+        }
+
+        // Show email if provided
+        if (email) {
+            document.getElementById('user-email').textContent = email;
+        }
+
+        // Enhance Calendly link with pre-fill
+        if (fullName || email || company) {
+            const calendlyBtn = document.getElementById('calendly-btn');
+            let calendlyUrl = 'https://calendly.com/wouter-arts-/recruitment-apk-advies?';
+
+            const params = [];
+            if (fullName) params.push(`name=${encodeURIComponent(fullName)}`);
+            if (email) params.push(`email=${encodeURIComponent(email)}`);
+            if (company) params.push(`a1=${encodeURIComponent(company)}`);
+            if (sector) params.push(`a2=${encodeURIComponent(sector)}`);
+            if (score) params.push(`a3=Assessment Score: ${encodeURIComponent(score)}%`);
+
+            calendlyBtn.href = calendlyUrl + params.join('&');
+        }
+
+        // Enhance WhatsApp link with personalization
+        if (firstName || company || sector) {
+            const whatsappBtn = document.getElementById('whatsapp-btn');
+            let message = 'Hi Wouter, ik heb net de FlowMaster Assessment ingevuld';
+
+            if (firstName) {
+                const firstNameOnly = firstName.split(' ')[0];
+                message = `Hi Wouter, ik ben ${firstNameOnly}`;
+            }
+            if (company) {
+                message += ` van ${company}`;
+            }
+            if (sector) {
+                message += ` (${sector})`;
+            }
+            message += '!';
+
+            if (score) {
+                message += ` Mijn score was ${score}%.`;
+            }
+
+            whatsappBtn.href = `https://wa.me/31614314593?text=${encodeURIComponent(message)}`;
+        }
+
+        // Optional: Analytics tracking
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'conversion', {
+                'send_to': 'AW-XXXXXXXXXX/XXXXXXXXXXXXXX',
+                'event_category': 'Assessment',
+                'event_label': 'Complete',
+                'value': 1.0
+            });
+
+            gtag('event', 'page_view', {
+                'page_title': 'Assessment Complete - Thank You',
+                'page_location': window.location.href
+            });
+        }
+
+        // Log completion for debugging
+        console.log('✅ FlowMaster Assessment completed successfully');
+        if (email) console.log('📧 Report will be sent to:', email);
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+# FlowMaster Pro V4 - Apache Configuration
+# Beveiligings- en performance optimalisaties
+
+# Redirect HTTP naar HTTPS
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Beveiligingsheaders
+<IfModule mod_headers.c>
+    # XSS Bescherming
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Clickjacking bescherming
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # MIME type sniffing voorkomen
+    Header set X-Content-Type-Options "nosniff"
+
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Content Security Policy (pas aan voor productie)
+    Header set Content-Security-Policy "default-src 'self' https:; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://sheets.googleapis.com; frame-src 'self' https://accounts.google.com;"
+
+    # HSTS (HTTP Strict Transport Security) - 1 jaar
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    # Permissions Policy
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Compressie voor betere performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Browser caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # HTML - geen caching
+    ExpiresByType text/html "access plus 0 seconds"
+
+    # CSS en JavaScript - 1 jaar
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+
+    # Afbeeldingen - 1 maand
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+
+    # Fonts - 1 jaar
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+
+    # Favicon - 1 week
+    ExpiresByType image/x-icon "access plus 1 week"
+</IfModule>
+
+# Cache-Control headers
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+</IfModule>
+
+# PHP beveiligingsinstellingen
+<IfModule mod_php.c>
+    # Schakel PHP error display uit voor productie
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+
+    # Log errors naar bestand
+    php_flag log_errors On
+
+    # Beperk bestandsupload grootte
+    php_value upload_max_filesize 2M
+    php_value post_max_size 2M
+
+    # Session beveiliging
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure On
+    php_value session.cookie_samesite "Strict"
+</IfModule>
+
+# Bescherm gevoelige bestanden
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blokkeer toegang tot config en data directories
+<IfModule mod_rewrite.c>
+    RewriteRule ^(data|config|logs|backups)/.*$ - [F,L]
+</IfModule>
+
+# Directory listing uitschakelen
+Options -Indexes
+
+# Error pagina's
+ErrorDocument 403 /403.html
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+
+# Charset instellingen
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .html .css .js .xml .json .txt
+
+# MIME types
+<IfModule mod_mime.c>
+    AddType application/javascript js
+    AddType application/json json
+    AddType image/svg+xml svg svgz
+    AddEncoding gzip svgz
+    AddType font/woff woff
+    AddType font/woff2 woff2
+</IfModule>
+
+# PHP als CGI (indien nodig voor beveiliging)
+# Options +ExecCGI
+# AddHandler php-cgi .php
+
+# Rate limiting (vereist mod_ratelimit)
+# <IfModule mod_ratelimit.c>
+#     SetOutputFilter RATE_LIMIT
+#     SetEnv rate-limit 400
+# </IfModule>

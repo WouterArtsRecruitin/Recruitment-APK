@@ -1,0 +1,50 @@
+# robots.txt voor recruitmentapk.nl
+# Laatste update: 2025-10-27
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /privacy.html
+
+# Blokkeer toegang tot backend bestanden
+Disallow: /api/
+Disallow: /data/
+Disallow: /config.js
+Disallow: *.php$
+Disallow: /backups/
+Disallow: /logs/
+
+# Blokkeer oude of test bestanden
+Disallow: /index.html
+Disallow: /app_css.css
+Disallow: /app_css kopie.css
+Disallow: /production_html_full (1).html
+Disallow: /recruitpro_deploy_workflow kopie.html
+
+# Sitemap locatie
+Sitemap: https://recruitmentapk.nl/sitemap.xml
+
+# Crawl delay (optioneel, voor beheer van server load)
+Crawl-delay: 1
+
+# Specifieke bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /assets/images/
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Blokkeer slechte bots
+User-agent: AhrefsBot
+Crawl-delay: 2
+
+User-agent: MJ12bot
+Crawl-delay: 2
+
+User-agent: SemrushBot
+Crawl-delay: 2

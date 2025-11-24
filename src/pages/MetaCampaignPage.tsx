@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, ArrowRight, Clock, Users, TrendingUp, Phone, Mail, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CheckCircle2, ArrowRight, Phone, MessageCircle, Calendar } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { event as trackFbEvent } from '../components/MetaPixel';
 
+// REPLACE WITH YOUR TYPEFORM ID
 const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
-const TYPEFORM_SCRIPT_URL = "//embed.typeform.com/next/embed.js";
 
 interface TypeformWindow extends Window {
   tf?: {
@@ -14,282 +14,242 @@ interface TypeformWindow extends Window {
 }
 
 export function MetaCampaignPage() {
-  const [showAssessment, setShowAssessment] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'assessment' | 'success'>('welcome');
+  const [userData, setUserData] = useState({ firstName: '', email: '' });
 
-  // Load Typeform script
   useEffect(() => {
-    if (!document.querySelector(`script[src="${TYPEFORM_SCRIPT_URL}"]`)) {
-      const script = document.createElement('script');
-      script.src = TYPEFORM_SCRIPT_URL;
-      script.async = true;
-      script.onload = () => setScriptLoaded(true);
-      document.body.appendChild(script);
-    } else {
-      setScriptLoaded(true);
+    // Check for URL parameters to see if user has been redirected from Typeform
+    const params = new URLSearchParams(window.location.search);
+    const stepParam = params.get('step');
+    const firstName = params.get('first_name') || params.get('name') || '';
+    const email = params.get('email') || '';
+
+    if (stepParam === 'success' || params.get('typeform-submission-id')) {
+      setUserData({ firstName, email });
+      setCurrentStep('success');
+      trackFbEvent('CompleteRegistration', { content_name: 'Recruitment Quickscan' });
     }
   }, []);
 
-  // Reinitialize Typeform when modal opens
+  // Re-initialize Typeform when switching to assessment step
   useEffect(() => {
-    if (showAssessment && scriptLoaded) {
-      const tfWindow = window as TypeformWindow;
-      if (tfWindow.tf && typeof tfWindow.tf.load === 'function') {
-        tfWindow.tf.load();
+    if (currentStep === 'assessment') {
+      const scriptSrc = "//embed.typeform.com/next/embed.js";
+
+      if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
+        const script = document.createElement('script');
+        script.src = scriptSrc;
+        script.async = true;
+        document.body.appendChild(script);
+      } else {
+        const tfWindow = window as TypeformWindow;
+        if (tfWindow.tf && typeof tfWindow.tf.load === 'function') {
+          tfWindow.tf.load();
+        }
       }
     }
-  }, [showAssessment, scriptLoaded]);
+  }, [currentStep]);
 
-  const handleStartAssessment = () => {
-    trackFbEvent('Lead', {
-      content_name: 'Recruitment APK - Meta Campaign',
-      content_category: 'Assessment',
-    });
-    setShowAssessment(true);
+  const handleStart = () => {
+    trackFbEvent('InitiateCheckout', { content_name: 'Recruitment Quickscan' });
+    setCurrentStep('assessment');
   };
 
-  const benefits = [
-    { icon: Clock, text: '10 vragen, 3 minuten', color: 'text-blue-500' },
-    { icon: TrendingUp, text: 'Direct je benchmark score', color: 'text-green-500' },
-    { icon: Users, text: 'Gratis actieplan op maat', color: 'text-purple-500' },
-  ];
+  // ---------------------------------------------------------------------------
+  // SUCCESS VIEW
+  // ---------------------------------------------------------------------------
+  const SuccessView = () => (
+    <div className="min-h-dvh relative flex items-center justify-center p-4 bg-slate-950 overflow-hidden font-sans text-slate-200">
+       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950"></div>
 
-  const socialProof = [
-    { metric: '200+', label: 'Bedrijven geholpen' },
-    { metric: '4.9/5', label: 'Gemiddelde score' },
-    { metric: '24u', label: 'Rapport klaar' },
-  ];
+       <motion.div
+         initial={{ opacity: 0, scale: 0.95 }}
+         animate={{ opacity: 1, scale: 1 }}
+         className="relative z-10 w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl text-center"
+       >
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Bedankt!
+          </h2>
 
-  return (
-    <>
-      {/* Main Landing Page */}
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
-        {/* Hero Section */}
-        <div className="relative">
-          {/* Background Elements */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/20 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-soft-light"></div>
+          <p className="text-slate-300 mb-6 text-sm leading-relaxed">
+            Je Recruitment APK Rapport wordt nu gemaakt en komt binnen 24 uur in je inbox.
+          </p>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20 sm:pt-20 sm:pb-32">
-            {/* Logo/Brand */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-8"
-            >
-              <h3 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
-                Recruitin
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">The Right People, Right Now</p>
-            </motion.div>
-
-            {/* Main Headline */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-center mb-12"
-            >
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-6">
-                Verlies je nog steeds
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600">
-                  topkandidaten?
-                </span>
-              </h1>
-
-              <p className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                Ontdek in 3 minuten waar jouw wervingsproces hapert en krijg een <span className="font-semibold text-white">gratis actieplan</span> om sneller betere mensen te vinden.
-              </p>
-            </motion.div>
-
-            {/* Benefits Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12"
-            >
-              {benefits.map((benefit, index) => (
-                <div
-                  key={index}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all"
-                >
-                  <benefit.icon className={`w-8 h-8 ${benefit.color} mx-auto mb-3`} />
-                  <p className="text-sm sm:text-base font-medium">{benefit.text}</p>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* CTA Button */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-center mb-8"
-            >
-              <Button
-                onClick={handleStartAssessment}
-                size="lg"
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold group"
-              >
-                Start Gratis Quickscan
-                <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-              </Button>
-
-              <p className="text-sm text-slate-400 mt-4">
-                <CheckCircle2 className="w-4 h-4 inline mr-1 text-green-500" />
-                100% Gratis • Geen creditcard nodig • Direct resultaat
-              </p>
-            </motion.div>
-
-            {/* Social Proof */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-3 gap-4 max-w-2xl mx-auto pt-8 border-t border-white/10"
-            >
-              {socialProof.map((item, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-orange-400 mb-1">
-                    {item.metric}
-                  </div>
-                  <div className="text-xs sm:text-sm text-slate-400">{item.label}</div>
-                </div>
-              ))}
-            </motion.div>
+          <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-8 text-sm">
+            <p className="font-medium text-blue-200 mb-1">📧 Check je mail:</p>
+            <p className="text-slate-300 break-all">{userData.email || 'je inbox'}</p>
+            <p className="text-xs text-slate-500 mt-2">(check ook je spam!)</p>
           </div>
-        </div>
 
-        {/* Features Section */}
-        <div className="bg-slate-900/50 border-y border-white/10 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
-              Wat krijg je?
-            </h2>
+          <div className="w-full h-px bg-white/10 my-6"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: 'Jouw APK Score',
-                  description: 'Zie direct hoe jij scoort op 6 cruciale recruitment metrics',
-                },
-                {
-                  title: 'Benchmark Vergelijking',
-                  description: 'Vergelijk jezelf met 200+ andere bedrijven in jouw sector',
-                },
-                {
-                  title: 'Persoonlijk Actieplan',
-                  description: 'Krijg concrete stappen om morgen al betere resultaten te halen',
-                },
-                {
-                  title: 'PDF Rapport',
-                  description: 'Professioneel rapport om te delen met je team binnen 24u',
-                },
-                {
-                  title: 'Gratis Adviesgesprek',
-                  description: 'Optioneel 15-min gesprek om je vragen te beantwoorden',
-                },
-                {
-                  title: '100% Gratis',
-                  description: 'Geen verborgen kosten, geen verplichtingen, gewoon waardevol inzicht',
-                },
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all"
-                >
-                  <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center mb-4">
-                    <CheckCircle2 className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-slate-400 text-sm">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          <h3 className="text-lg font-semibold text-white mb-4">Wil je direct aan de slag?</h3>
 
-        {/* Final CTA Section */}
-        <div className="py-20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl sm:text-5xl font-bold mb-6">
-              Klaar om je recruitment te verbeteren?
-            </h2>
-            <p className="text-lg sm:text-xl text-slate-300 mb-10">
-              Start nu de gratis quickscan en ontvang binnen 24 uur je persoonlijke rapport
+          <Button
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 text-lg rounded-xl shadow-lg mb-8"
+            onClick={() => window.open('https://calendly.com/recruitin/kennismaking', '_blank')}
+          >
+            <Calendar className="mr-2 w-5 h-5" />
+            Boek gratis 15-min gesprek
+          </Button>
+
+          <div className="w-full h-px bg-white/10 my-6"></div>
+
+          <p className="text-sm text-slate-400 mb-4">Of neem anders contact op:</p>
+
+          <div className="flex flex-col gap-3">
+            <a href="tel:0614314593" className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5">
+              <Phone className="w-4 h-4 text-green-500" />
+              Bel: 06 14314593
+            </a>
+
+            <a
+              href={`https://wa.me/31614314593?text=${encodeURIComponent("Hi Wouter, ik heb net het assessment ingevuld!")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5"
+            >
+              <MessageCircle className="w-4 h-4 text-green-500" />
+              WhatsApp: 06 14314593
+            </a>
+            <p className="text-[10px] text-slate-500 italic">
+              (Opslaan & verstuur: "Hi Wouter, ik heb net het assessment ingevuld!")
             </p>
-
-            <Button
-              onClick={handleStartAssessment}
-              size="lg"
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold group"
-            >
-              Start Nu Gratis
-              <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-            </Button>
           </div>
+
+          <div className="w-full h-px bg-white/10 my-6"></div>
+
+          <p className="text-xs text-slate-500">
+            Geen email na 24 uur? Bel 06 14314593
+          </p>
+       </motion.div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // CONVERSION COMPONENTS
+  // ---------------------------------------------------------------------------
+  const ValueCheckmarks = ({ centered = false }: { centered?: boolean }) => (
+    <div className={`flex flex-col sm:flex-row gap-3 sm:gap-6 mt-6 text-sm text-slate-300 ${centered ? 'items-center justify-center' : ''}`}>
+      {['Direct benchmark score', 'Bespaartips op maat', 'Gratis PDF Rapport'].map((item, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="bg-green-500/20 p-1 rounded-full">
+            <CheckCircle2 className="w-3 h-3 text-green-500" />
+          </div>
+          <span>{item}</span>
         </div>
+      ))}
+    </div>
+  );
 
-        {/* Footer */}
-        <footer className="border-t border-white/10 py-8 bg-slate-950/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-              <div className="text-center sm:text-left">
-                <p className="font-semibold text-white mb-1">Recruitin</p>
-                <p>The Right People, Right Now</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <a href="https://www.recruitin.nl" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
-                  www.recruitin.nl
-                </a>
-                <span className="hidden sm:inline text-slate-600">•</span>
-                <a href="mailto:info@recruitin.nl" className="hover:text-orange-400 transition-colors flex items-center gap-1">
-                  <Mail className="w-4 h-4" />
-                  info@recruitin.nl
-                </a>
-                <span className="hidden sm:inline text-slate-600">•</span>
-                <a href="tel:+31313410507" className="hover:text-orange-400 transition-colors flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
-                  +31 313 410 507
-                </a>
-              </div>
-            </div>
-          </div>
-        </footer>
+  // ---------------------------------------------------------------------------
+  // WELCOME VIEW - Meta Optimized Landing Page
+  // ---------------------------------------------------------------------------
+  const WelcomeView = () => (
+    <div className="min-h-dvh relative flex items-center justify-center p-4 bg-slate-950 overflow-hidden font-sans">
+      {/* Background - Tech Minimalist */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-slate-950"></div>
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full bg-blue-900/20 blur-[120px] opacity-50 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
       </div>
 
-      {/* Typeform Modal */}
-      <AnimatePresence>
-        {showAssessment && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
-          >
-            <div className="w-full h-full flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-900/90 border-b border-white/10">
-                <div className="text-white font-bold text-lg">Recruitin</div>
-                <button
-                  onClick={() => setShowAssessment(false)}
-                  className="text-slate-400 hover:text-white transition-colors p-2"
-                  aria-label="Sluiten"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 md:px-8 flex flex-col items-center text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter uppercase mb-4 drop-shadow-2xl">
+            Recruitment <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">APK</span>
+          </h1>
 
-              {/* Typeform Embed */}
-              <div className="flex-1 w-full">
-                <div data-tf-live={TYPEFORM_ID} className="w-full h-full"></div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          <p className="text-lg md:text-xl text-slate-300 font-light max-w-3xl leading-relaxed mb-8">
+            Deze quickscan met 10 vragen laat zien waar jouw wervingsproces hapert. Vergelijk jouw prestaties met de markt en ontvang binnen 24 uur jouw actieplan.
+          </p>
+
+          <div className="relative group inline-block mb-8">
+            <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-orange-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 -z-10"></div>
+            <Button
+              onClick={handleStart}
+              size="lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-lg md:text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold tracking-wide w-full sm:w-auto"
+            >
+              Start Quickscan
+              <ArrowRight className="ml-2 w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+
+          <ValueCheckmarks centered />
+
+          <div className="mt-12 opacity-60 hover:opacity-100 transition-all duration-500">
+             <a href="https://recruitin.nl" target="_blank" rel="noopener noreferrer" className="inline-block">
+               <div className="text-2xl font-bold text-white">Recruitin</div>
+             </a>
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
+          className="mt-16 pt-8 border-t border-white/10 w-full max-w-2xl text-center"
+        >
+          <div className="mb-4">
+            <div className="text-xl font-bold text-white mb-3 opacity-80">Recruitin</div>
+            <p className="text-sm text-slate-400 italic">The Right People, Right Now</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-slate-400">
+            <a href="https://www.recruitin.nl" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
+              www.recruitin.nl
+            </a>
+            <span className="hidden sm:inline text-slate-600">•</span>
+            <a href="mailto:info@recruitin.nl" className="hover:text-orange-400 transition-colors">
+              info@recruitin.nl
+            </a>
+            <span className="hidden sm:inline text-slate-600">•</span>
+            <a href="tel:+31313410507" className="hover:text-orange-400 transition-colors">
+              +31 313 410 507
+            </a>
+          </div>
+        </motion.footer>
+      </div>
+    </div>
   );
+
+  // ---------------------------------------------------------------------------
+  // ASSESSMENT VIEW
+  // ---------------------------------------------------------------------------
+  const AssessmentView = () => (
+    <div className="w-full h-dvh bg-slate-900 flex flex-col">
+       <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 bg-slate-900/50 backdrop-blur-md border-b border-white/10 z-50 flex-none">
+          <div className="text-white font-bold text-lg">Recruitin</div>
+          <button
+            onClick={() => setCurrentStep('welcome')}
+            className="text-slate-400 hover:text-white transition-colors text-xs md:text-sm font-medium"
+          >
+            Sluiten
+          </button>
+       </div>
+       <div className="flex-1 w-full h-full bg-slate-900 relative overflow-hidden">
+          <div data-tf-live={TYPEFORM_ID} className="w-full h-full"></div>
+       </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // MAIN RENDER
+  // ---------------------------------------------------------------------------
+  if (currentStep === 'success') {
+    return <SuccessView />;
+  }
+
+  if (currentStep === 'assessment') {
+    return <AssessmentView />;
+  }
+
+  return <WelcomeView />;
 }

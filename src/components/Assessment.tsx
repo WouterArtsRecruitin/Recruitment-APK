@@ -29,8 +29,8 @@ import {
 // CONSTANTS
 // ============================================================================
 
-const TYPEFORM_ID = "01KARGCADMYDCG24PA4FWVKZJ2";
-const TYPEFORM_SCRIPT_URL = "//embed.typeform.com/next/embed.js";
+const PIPEDRIVE_WEBFORM_URL = "https://webforms.pipedrive.com/f/63f1b2o8FTfnSTcTphL7JutBbyo0EFSGeHaGtPNt7nLUWuYJnn9uiSJkLXPLLiXKtd";
+const PIPEDRIVE_SCRIPT_URL = "https://webforms.pipedrive.com/f/loader";
 
 const CONTACT_INFO = {
   website: "www.recruitin.nl",
@@ -45,12 +45,6 @@ const CONTACT_INFO = {
 
 type AssessmentStep = 'welcome' | 'assessment';
 
-interface TypeformWindow extends Window {
-  tf?: {
-    load: () => void;
-  };
-}
-
 // ============================================================================
 // COMPONENT
 // ============================================================================
@@ -61,7 +55,7 @@ export function Assessment() {
   const [typeformError, setTypeformError] = useState<string | null>(null);
 
   // --------------------------------------------------------------------------
-  // TYPEFORM SCRIPT LOADING
+  // PIPEDRIVE SCRIPT LOADING
   // --------------------------------------------------------------------------
 
   useEffect(() => {
@@ -70,44 +64,30 @@ export function Assessment() {
     setIsTypeformLoading(true);
     setTypeformError(null);
 
-    const scriptId = 'typeform-embed-script';
+    const scriptId = 'pipedrive-webform-script';
     const existingScript = document.getElementById(scriptId);
 
-    // If script already loaded, just reinitialize
-    const tfWindow = window as TypeformWindow;
-    if (existingScript && tfWindow.tf?.load) {
-      try {
-        tfWindow.tf.load();
-        setIsTypeformLoading(false);
-        return;
-      } catch (error) {
-        console.error('Error loading Typeform:', error);
-        const errorMessage = 'Er is een fout opgetreden bij het laden van de vragenlijst.';
-        setTypeformError(errorMessage);
-        setIsTypeformLoading(false);
-        trackError(`Typeform load error: ${error}`, true);
-        return;
-      }
+    // If script already loaded, just set loading to false
+    if (existingScript) {
+      setIsTypeformLoading(false);
+      return;
     }
 
     // Load script if not present
     const script = document.createElement('script');
     script.id = scriptId;
-    script.src = TYPEFORM_SCRIPT_URL;
+    script.src = PIPEDRIVE_SCRIPT_URL;
     script.async = true;
 
     script.onload = () => {
       setIsTypeformLoading(false);
-      if (tfWindow.tf?.load) {
-        tfWindow.tf.load();
-      }
     };
 
     script.onerror = () => {
       const errorMessage = 'Kan de vragenlijst niet laden. Probeer de pagina te vernieuwen.';
       setTypeformError(errorMessage);
       setIsTypeformLoading(false);
-      trackError('Typeform script failed to load', true);
+      trackError('Pipedrive script failed to load', true);
     };
 
     document.body.appendChild(script);
@@ -123,37 +103,28 @@ export function Assessment() {
   }, [currentStep]);
 
   // --------------------------------------------------------------------------
-  // TYPEFORM EVENT TRACKING
+  // PIPEDRIVE EVENT TRACKING
   // --------------------------------------------------------------------------
 
   useEffect(() => {
     if (currentStep !== 'assessment') return;
 
-    const handleTypeformMessage = (event: MessageEvent) => {
+    const handlePipedriveMessage = (event: MessageEvent) => {
       if (!event.data || typeof event.data !== 'object') return;
 
-      switch (event.data.type) {
-        case 'form-ready':
-          trackTypeformEvent('loaded');
-          break;
-
-        case 'form-submit':
-          trackAssessmentCompleted();
-          trackTypeformEvent('submitted', event.data);
-          // Optional: Redirect to thank you page
-          setTimeout(() => {
-            window.location.href = '/thank-you.html';
-          }, 1000);
-          break;
-
-        case 'form-screen-changed':
-          trackTypeformEvent('screen_changed', event.data);
-          break;
+      // Pipedrive webforms send messages when forms are submitted
+      if (event.data.type === 'pipedrive-form-submit' || event.data.event === 'submit') {
+        trackAssessmentCompleted();
+        trackTypeformEvent('submitted', event.data);
+        // Optional: Redirect to thank you page or success step
+        setTimeout(() => {
+          setCurrentStep('welcome');
+        }, 1000);
       }
     };
 
-    window.addEventListener('message', handleTypeformMessage);
-    return () => window.removeEventListener('message', handleTypeformMessage);
+    window.addEventListener('message', handlePipedriveMessage);
+    return () => window.removeEventListener('message', handlePipedriveMessage);
   }, [currentStep]);
 
   // --------------------------------------------------------------------------
@@ -230,8 +201,8 @@ export function Assessment() {
 
           {!typeformError && (
             <div
-              data-tf-live={TYPEFORM_ID}
-              className="w-full h-full"
+              className="pipedriveWebForms w-full h-full"
+              data-pd-webforms={PIPEDRIVE_WEBFORM_URL}
               aria-label="Recruitment APK vragenlijst"
             />
           )}

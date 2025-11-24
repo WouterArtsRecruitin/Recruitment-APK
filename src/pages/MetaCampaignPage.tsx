@@ -4,48 +4,37 @@ import { CheckCircle2, ArrowRight, Phone, MessageCircle, Calendar } from 'lucide
 import { Button } from '../components/ui/button';
 import { event as trackFbEvent } from '../components/MetaPixel';
 
-// REPLACE WITH YOUR TYPEFORM ID
-const TYPEFORM_ID = "01KARGCADMYDCG24PA4FWVKZJ2";
-
-interface TypeformWindow extends Window {
-  tf?: {
-    load: () => void;
-  };
-}
+// Pipedrive Webform URL
+const PIPEDRIVE_WEBFORM_URL = "https://webforms.pipedrive.com/f/63f1b2o8FTfnSTcTphL7JutBbyo0EFSGeHaGtPNt7nLUWuYJnn9uiSJkLXPLLiXKtd";
 
 export function MetaCampaignPage() {
   const [currentStep, setCurrentStep] = useState<'welcome' | 'assessment' | 'success'>('welcome');
   const [userData, setUserData] = useState({ firstName: '', email: '' });
 
   useEffect(() => {
-    // Check for URL parameters to see if user has been redirected from Typeform
+    // Check for URL parameters to see if user has been redirected from Pipedrive
     const params = new URLSearchParams(window.location.search);
     const stepParam = params.get('step');
     const firstName = params.get('first_name') || params.get('name') || '';
     const email = params.get('email') || '';
 
-    if (stepParam === 'success' || params.get('typeform-submission-id')) {
+    if (stepParam === 'success' || params.get('pipedrive-submission-id')) {
       setUserData({ firstName, email });
       setCurrentStep('success');
       trackFbEvent('CompleteRegistration', { content_name: 'Recruitment Quickscan' });
     }
   }, []);
 
-  // Re-initialize Typeform when switching to assessment step
+  // Load Pipedrive webform script when switching to assessment step
   useEffect(() => {
     if (currentStep === 'assessment') {
-      const scriptSrc = "//embed.typeform.com/next/embed.js";
+      const scriptSrc = "https://webforms.pipedrive.com/f/loader";
 
       if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
         const script = document.createElement('script');
         script.src = scriptSrc;
         script.async = true;
         document.body.appendChild(script);
-      } else {
-        const tfWindow = window as TypeformWindow;
-        if (tfWindow.tf && typeof tfWindow.tf.load === 'function') {
-          tfWindow.tf.load();
-        }
       }
     }
   }, [currentStep]);
@@ -235,7 +224,7 @@ export function MetaCampaignPage() {
           </button>
        </div>
        <div className="flex-1 w-full h-full bg-slate-900 relative overflow-hidden">
-          <div data-tf-live={TYPEFORM_ID} className="w-full h-full"></div>
+          <div className="pipedriveWebForms w-full h-full" data-pd-webforms={PIPEDRIVE_WEBFORM_URL}></div>
        </div>
     </div>
   );

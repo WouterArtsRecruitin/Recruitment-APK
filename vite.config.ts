@@ -15,12 +15,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom'],
-          'animations': ['motion'],
+          'animations': ['framer-motion'],
           'icons': ['lucide-react'],
         },
       },

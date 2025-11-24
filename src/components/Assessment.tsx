@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Globe, Mail, Phone, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
-import logo from "figma:asset/87a4b7438908a4a6cba85a1fe483cdd1f613878a.png";
 import { SocialProofToast } from './SocialProofToast';
 import {
   trackAssessmentStarted,
@@ -183,12 +182,9 @@ export function Assessment() {
           className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 bg-slate-900/50 backdrop-blur-md border-b border-white/10 z-50 flex-none"
           role="banner"
         >
-          <img
-            src={logo}
-            alt="Recruitin Logo"
-            className="h-6 md:h-8 opacity-80 invert brightness-0"
-            loading="eager"
-          />
+          <div className="text-white font-bold text-lg md:text-xl opacity-80">
+            Recruitin
+          </div>
           <button
             onClick={handleClose}
             className="text-slate-400 hover:text-white transition-colors text-xs md:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-3 py-1"
@@ -370,13 +366,9 @@ export function Assessment() {
                 variants={fadeInUp}
                 whileHover={{ scale: 1.05 }}
                 transition={transitions.fast}
+                className="text-white font-bold text-2xl md:text-3xl opacity-60 hover:opacity-100 transition-opacity"
               >
-                <img
-                  src={logo}
-                  alt="Recruitin - The right people, right now"
-                  className="h-10 md:h-12 invert brightness-0 opacity-60 hover:opacity-100 transition-opacity"
-                  loading="lazy"
-                />
+                Recruitin
               </motion.div>
 
               <motion.p

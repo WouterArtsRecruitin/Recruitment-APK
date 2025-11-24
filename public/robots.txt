@@ -1,0 +1,40 @@
+# robots.txt voor Recruitment APK
+# Optimized for SEO
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*?*utm_*
+
+# Specifieke bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Slurp
+Allow: /
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://recruitmentapk.nl/sitemap.xml
+Sitemap: https://recruitmentapk.nl/sitemap-pages.xml
+
+# Host (preferred domain)
+Host: https://recruitmentapk.nl

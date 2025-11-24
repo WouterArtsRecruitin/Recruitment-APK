@@ -238,5 +238,4 @@ export {
   CriticalCSS,
   ResourceHints,
   LazyImage,
-  usePerformanceMonitor,
 };

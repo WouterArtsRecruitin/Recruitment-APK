@@ -4,6 +4,14 @@ import { ArrowRight, Globe, Mail, Phone, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import logo from "figma:asset/87a4b7438908a4a6cba85a1fe483cdd1f613878a.png";
 import { SocialProofToast } from './SocialProofToast';
+import {
+  trackAssessmentStarted,
+  trackAssessmentCompleted,
+  trackAssessmentAbandoned,
+  trackTypeformEvent,
+  trackContactClick,
+  trackError,
+} from '../lib/analytics';
 
 // ============================================================================
 // CONSTANTS
@@ -69,8 +77,10 @@ export function Assessment() {
         return;
       } catch (error) {
         console.error('Error loading Typeform:', error);
-        setTypeformError('Er is een fout opgetreden bij het laden van de vragenlijst.');
+        const errorMessage = 'Er is een fout opgetreden bij het laden van de vragenlijst.';
+        setTypeformError(errorMessage);
         setIsTypeformLoading(false);
+        trackError(`Typeform load error: ${error}`, true);
         return;
       }
     }
@@ -89,8 +99,10 @@ export function Assessment() {
     };
 
     script.onerror = () => {
-      setTypeformError('Kan de vragenlijst niet laden. Probeer de pagina te vernieuwen.');
+      const errorMessage = 'Kan de vragenlijst niet laden. Probeer de pagina te vernieuwen.';
+      setTypeformError(errorMessage);
       setIsTypeformLoading(false);
+      trackError('Typeform script failed to load', true);
     };
 
     document.body.appendChild(script);
@@ -106,14 +118,50 @@ export function Assessment() {
   }, [currentStep]);
 
   // --------------------------------------------------------------------------
+  // TYPEFORM EVENT TRACKING
+  // --------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (currentStep !== 'assessment') return;
+
+    const handleTypeformMessage = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== 'object') return;
+
+      switch (event.data.type) {
+        case 'form-ready':
+          trackTypeformEvent('loaded');
+          break;
+
+        case 'form-submit':
+          trackAssessmentCompleted();
+          trackTypeformEvent('submitted', event.data);
+          // Optional: Redirect to thank you page
+          setTimeout(() => {
+            window.location.href = '/thank-you.html';
+          }, 1000);
+          break;
+
+        case 'form-screen-changed':
+          trackTypeformEvent('screen_changed', event.data);
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleTypeformMessage);
+    return () => window.removeEventListener('message', handleTypeformMessage);
+  }, [currentStep]);
+
+  // --------------------------------------------------------------------------
   // HANDLERS
   // --------------------------------------------------------------------------
 
   const handleStart = useCallback(() => {
+    trackAssessmentStarted();
     setCurrentStep('assessment');
   }, []);
 
   const handleClose = useCallback(() => {
+    trackAssessmentAbandoned();
     setCurrentStep('welcome');
   }, []);
 
@@ -282,6 +330,7 @@ export function Assessment() {
                   href={CONTACT_INFO.websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackContactClick('website')}
                   className="flex items-center gap-2 hover:text-orange-400 transition-colors duration-300 focus:outline-none focus:text-orange-400"
                 >
                   <Globe className="w-4 h-4" aria-hidden="true" />
@@ -289,6 +338,7 @@ export function Assessment() {
                 </a>
                 <a
                   href={`mailto:${CONTACT_INFO.email}`}
+                  onClick={() => trackContactClick('email')}
                   className="flex items-center gap-2 hover:text-orange-400 transition-colors duration-300 focus:outline-none focus:text-orange-400"
                 >
                   <Mail className="w-4 h-4" aria-hidden="true" />
@@ -296,6 +346,7 @@ export function Assessment() {
                 </a>
                 <a
                   href={`tel:${CONTACT_INFO.phone}`}
+                  onClick={() => trackContactClick('phone')}
                   className="flex items-center gap-2 hover:text-orange-400 transition-colors duration-300 focus:outline-none focus:text-orange-400"
                 >
                   <Phone className="w-4 h-4" aria-hidden="true" />

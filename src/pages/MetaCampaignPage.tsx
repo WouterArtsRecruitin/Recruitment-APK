@@ -224,7 +224,7 @@ export function MetaCampaignPage() {
   // ASSESSMENT VIEW
   // ---------------------------------------------------------------------------
   const AssessmentView = () => (
-    <div className="w-full h-dvh bg-slate-900 flex flex-col">
+    <div className="fixed inset-0 w-full h-screen bg-slate-900 flex flex-col">
        <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 bg-slate-900/50 backdrop-blur-md border-b border-white/10 z-50 flex-none">
           <div className="text-white font-bold text-lg">Recruitin</div>
           <button
@@ -234,8 +234,13 @@ export function MetaCampaignPage() {
             Sluiten
           </button>
        </div>
-       <div className="flex-1 w-full h-full bg-slate-900 relative overflow-hidden">
-          <div data-tf-live={TYPEFORM_ID} className="w-full h-full"></div>
+       <div className="flex-1 w-full overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
+          <div
+            data-tf-live={TYPEFORM_ID}
+            data-tf-iframe-props="title=Recruitment APK"
+            data-tf-medium="snippet"
+            style={{ width: '100%', height: '100%' }}
+          ></div>
        </div>
     </div>
   );

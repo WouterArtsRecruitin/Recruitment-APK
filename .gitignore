@@ -36,3 +36,13 @@ lerna-debug.log*
 
 # Vercel
 .vercel
+
+# Sensitive config files
+config.js
+*-BACKUP-*.html
+*.backup.*
+
+# Environment files with secrets
+.env
+*.key
+*.pem

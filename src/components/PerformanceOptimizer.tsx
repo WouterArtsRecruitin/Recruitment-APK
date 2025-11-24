@@ -230,12 +230,7 @@ export function getOptimalImageSize(): string {
 }
 
 // ============================================================================
-// EXPORT ALL
+// DEFAULT EXPORT
 // ============================================================================
 
-export {
-  PerformanceOptimizer as default,
-  CriticalCSS,
-  ResourceHints,
-  LazyImage,
-};
+export { PerformanceOptimizer as default };

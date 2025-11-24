@@ -3,7 +3,7 @@
  * Reusable Framer Motion variants and utilities
  */
 
-import type { Variants, Transition } from 'motion/react';
+import type { Variants, Transition } from 'framer-motion';
 
 // ============================================================================
 // EASING FUNCTIONS

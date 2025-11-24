@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence, useInView } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Globe, Mail, Phone, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import logo from "figma:asset/87a4b7438908a4a6cba85a1fe483cdd1f613878a.png";

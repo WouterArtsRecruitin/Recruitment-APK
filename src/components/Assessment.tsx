@@ -9,6 +9,7 @@ import { WhatsAppButton } from './WhatsAppButton';
 import { UrgencyBanner } from './UrgencyBanner';
 import { TestimonialsCarousel } from './TestimonialsCarousel';
 import { clarityTrack } from './MicrosoftClarity';
+import { useCTAVariant, useUrgencyBannerVariant, useABTest } from './ABTesting';
 import {
   trackAssessmentStarted,
   trackAssessmentCompleted,
@@ -65,6 +66,14 @@ export function Assessment() {
   const [currentStep, setCurrentStep] = useState<AssessmentStep>('welcome');
   const [isTypeformLoading, setIsTypeformLoading] = useState(false);
   const [typeformError, setTypeformError] = useState<string | null>(null);
+
+  // --------------------------------------------------------------------------
+  // A/B TEST VARIANTS
+  // --------------------------------------------------------------------------
+
+  const { text: ctaText, variant: ctaVariant } = useCTAVariant();
+  const { show: showUrgencyBanner } = useUrgencyBannerVariant();
+  const { trackConversion } = useABTest('cta_text');
 
   // --------------------------------------------------------------------------
   // TYPEFORM SCRIPT LOADING
@@ -169,8 +178,9 @@ export function Assessment() {
   const handleStart = useCallback(() => {
     trackAssessmentStarted();
     clarityTrack.assessmentStarted();
+    trackConversion('cta_click'); // Track A/B test conversion
     setCurrentStep('assessment');
-  }, []);
+  }, [trackConversion]);
 
   const handleClose = useCallback(() => {
     trackAssessmentAbandoned();
@@ -254,8 +264,8 @@ export function Assessment() {
 
   return (
     <div className="min-h-dvh relative flex flex-col bg-slate-950 overflow-hidden font-sans">
-      {/* Urgency Banner at Top */}
-      <UrgencyBanner variant="banner" />
+      {/* Urgency Banner at Top - A/B Tested */}
+      {showUrgencyBanner && <UrgencyBanner variant="banner" />}
 
       {/* Main Content Area */}
       <div className="flex-1 relative flex items-center justify-center p-4">
@@ -352,10 +362,11 @@ export function Assessment() {
               ))}
             </motion.div>
 
-            {/* CTA Button - Improved Copy */}
+            {/* CTA Button - A/B Tested Copy */}
             <motion.div
               variants={heroCTA}
               className="relative group inline-block mb-8"
+              data-ab-variant={ctaVariant} // For debugging
             >
               <motion.div
                 className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-orange-400 rounded-full blur -z-10"
@@ -375,9 +386,9 @@ export function Assessment() {
                   onClick={handleStart}
                   size="lg"
                   className="bg-orange-500 hover:bg-orange-600 text-white text-lg md:text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold tracking-wide focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-slate-950"
-                  aria-label="Ontdek jouw recruitment score in 5 minuten"
+                  aria-label={ctaText}
                 >
-                  Ontdek Jouw Score
+                  {ctaText}
                   <motion.span
                     className="inline-block ml-2"
                     animate={{ x: [0, 4, 0] }}

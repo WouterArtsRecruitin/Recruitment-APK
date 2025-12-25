@@ -4,25 +4,35 @@ import { SEOHead } from './components/SEOHead';
 import PerformanceOptimizer, { ResourceHints } from './components/PerformanceOptimizer';
 import { AnalyticsProvider } from './components/AnalyticsProvider';
 import { MetaPixel } from './components/MetaPixel';
+import { MicrosoftClarity } from './components/MicrosoftClarity';
+import { GoogleAdsRemarketing } from './components/GoogleAdsRemarketing';
+import { ABTestingProvider, ABTestDebugPanel } from './components/ABTesting';
 import { MetaCampaignPage } from './pages/MetaCampaignPage';
 
 function App() {
   return (
     <BrowserRouter>
-      <AnalyticsProvider>
-        <SEOHead />
-        <ResourceHints />
-        <PerformanceOptimizer />
-        <MetaPixel />
+      <ABTestingProvider>
+        <AnalyticsProvider>
+          <SEOHead />
+          <ResourceHints />
+          <PerformanceOptimizer />
+          <MetaPixel />
+          <MicrosoftClarity projectId={import.meta.env.VITE_CLARITY_PROJECT_ID} />
+          <GoogleAdsRemarketing conversionId={import.meta.env.VITE_GOOGLE_ADS_ID} />
 
-        <Routes>
-          {/* Main Assessment Page */}
-          <Route path="/" element={<Assessment />} />
+          <Routes>
+            {/* Main Assessment Page */}
+            <Route path="/" element={<Assessment />} />
 
-          {/* Meta Campaign Landing Page */}
-          <Route path="/meta" element={<MetaCampaignPage />} />
-        </Routes>
-      </AnalyticsProvider>
+            {/* Meta Campaign Landing Page */}
+            <Route path="/meta" element={<MetaCampaignPage />} />
+          </Routes>
+
+          {/* Debug panel - only visible in development */}
+          <ABTestDebugPanel />
+        </AnalyticsProvider>
+      </ABTestingProvider>
     </BrowserRouter>
   );
 }

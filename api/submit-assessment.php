@@ -41,6 +41,12 @@ define('MAX_REQUESTS_PER_HOUR', 5);
 define('ADMIN_EMAIL', 'info@recruitmentapk.nl');
 define('ENABLE_EMAIL_NOTIFICATIONS', true);
 
+// Pipedrive CRM configuratie
+define('PIPEDRIVE_API_TOKEN', getenv('PIPEDRIVE_API_TOKEN') ?: '');
+define('PIPEDRIVE_API_URL', 'https://api.pipedrive.com/v1');
+define('PIPEDRIVE_PIPELINE_NAME', 'recruitmentapk'); // Naam van de pipeline in Pipedrive
+define('ENABLE_PIPEDRIVE', !empty(PIPEDRIVE_API_TOKEN));
+
 // Rate limiting per IP
 function checkRateLimit() {
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -256,6 +262,248 @@ function saveToCSV($data) {
     return $result !== false;
 }
 
+// Pipedrive CRM integratie
+function createPipedriveDeal($data) {
+    if (!ENABLE_PIPEDRIVE) {
+        return ['success' => false, 'error' => 'Pipedrive not configured'];
+    }
+
+    $result = [
+        'success' => false,
+        'person_id' => null,
+        'organization_id' => null,
+        'deal_id' => null
+    ];
+
+    try {
+        // Stap 1: Maak of vind Organization
+        $org_id = findOrCreatePipedriveOrganization($data['company']);
+        if ($org_id) {
+            $result['organization_id'] = $org_id;
+        }
+
+        // Stap 2: Maak of vind Person
+        $person_id = findOrCreatePipedrivePerson($data, $org_id);
+        if ($person_id) {
+            $result['person_id'] = $person_id;
+        }
+
+        // Stap 3: Maak Deal
+        $deal_id = createPipedriveDealRecord($data, $person_id, $org_id);
+        if ($deal_id) {
+            $result['deal_id'] = $deal_id;
+            $result['success'] = true;
+        }
+
+        // Stap 4: Voeg notitie toe met assessment details
+        if ($deal_id) {
+            addPipedriveNote($deal_id, $data);
+        }
+
+    } catch (Exception $e) {
+        error_log("Pipedrive error: " . $e->getMessage());
+        $result['error'] = $e->getMessage();
+    }
+
+    return $result;
+}
+
+function pipedriveRequest($endpoint, $method = 'GET', $data = null) {
+    $url = PIPEDRIVE_API_URL . $endpoint;
+    $url .= (strpos($url, '?') === false ? '?' : '&') . 'api_token=' . PIPEDRIVE_API_TOKEN;
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+    if ($method === 'POST') {
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    }
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($http_code >= 400) {
+        error_log("Pipedrive API error ($http_code): $response");
+        return null;
+    }
+
+    return json_decode($response, true);
+}
+
+function findOrCreatePipedriveOrganization($company_name) {
+    // Zoek bestaande organisatie
+    $search = pipedriveRequest('/organizations/search?term=' . urlencode($company_name));
+
+    if ($search && isset($search['data']['items'][0]['item']['id'])) {
+        return $search['data']['items'][0]['item']['id'];
+    }
+
+    // Maak nieuwe organisatie
+    $org = pipedriveRequest('/organizations', 'POST', [
+        'name' => $company_name
+    ]);
+
+    return $org['data']['id'] ?? null;
+}
+
+function findOrCreatePipedrivePerson($data, $org_id = null) {
+    // Zoek bestaande persoon op email
+    $search = pipedriveRequest('/persons/search?term=' . urlencode($data['email']));
+
+    if ($search && isset($search['data']['items'][0]['item']['id'])) {
+        return $search['data']['items'][0]['item']['id'];
+    }
+
+    // Maak nieuwe persoon
+    $person_data = [
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone' => $data['phone']
+    ];
+
+    if ($org_id) {
+        $person_data['org_id'] = $org_id;
+    }
+
+    $person = pipedriveRequest('/persons', 'POST', $person_data);
+
+    return $person['data']['id'] ?? null;
+}
+
+function getPipedriveRecruitmentPipeline() {
+    static $pipeline_id = null;
+
+    if ($pipeline_id !== null) {
+        return $pipeline_id;
+    }
+
+    // Zoek de recruitmentapk pipeline
+    $pipelines = pipedriveRequest('/pipelines');
+
+    if ($pipelines && isset($pipelines['data'])) {
+        foreach ($pipelines['data'] as $pipeline) {
+            if (stripos($pipeline['name'], PIPEDRIVE_PIPELINE_NAME) !== false) {
+                $pipeline_id = $pipeline['id'];
+                return $pipeline_id;
+            }
+        }
+    }
+
+    return null; // Use default pipeline if not found
+}
+
+function getPipelineStages($pipeline_id) {
+    $stages = pipedriveRequest('/stages?pipeline_id=' . $pipeline_id);
+    return $stages['data'] ?? [];
+}
+
+function createPipedriveDealRecord($data, $person_id = null, $org_id = null) {
+    // Bepaal deal value op basis van bedrijfsgrootte en urgentie
+    $value = 5000; // Base value
+
+    if (strpos($data['company_size'], '100') !== false || strpos($data['company_size'], '250') !== false) {
+        $value = 15000;
+    } elseif (strpos($data['company_size'], '50') !== false) {
+        $value = 10000;
+    }
+
+    if ($data['urgency_level'] === 'ZEER HOOG') {
+        $value *= 1.5;
+    }
+
+    // Vind de recruitmentapk pipeline
+    $pipeline_id = getPipedriveRecruitmentPipeline();
+
+    // Vind de eerste stage van de pipeline (of specifieke stage op basis van urgency)
+    $stage_id = null;
+    if ($pipeline_id) {
+        $stages = getPipelineStages($pipeline_id);
+        if (!empty($stages)) {
+            // Gebruik de eerste stage als default
+            $stage_id = $stages[0]['id'];
+
+            // Als urgentie hoog is, probeer "Hot" of "Urgent" stage te vinden
+            if ($data['urgency_level'] === 'ZEER HOOG' || $data['urgency_level'] === 'HOOG') {
+                foreach ($stages as $stage) {
+                    if (stripos($stage['name'], 'hot') !== false ||
+                        stripos($stage['name'], 'urgent') !== false ||
+                        stripos($stage['name'], 'prio') !== false) {
+                        $stage_id = $stage['id'];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    $deal_data = [
+        'title' => "Recruitment APK - {$data['company']}",
+        'value' => $value,
+        'currency' => 'EUR',
+        'status' => 'open'
+    ];
+
+    if ($pipeline_id) {
+        $deal_data['pipeline_id'] = $pipeline_id;
+    }
+    if ($stage_id) {
+        $deal_data['stage_id'] = $stage_id;
+    }
+    if ($person_id) {
+        $deal_data['person_id'] = $person_id;
+    }
+    if ($org_id) {
+        $deal_data['org_id'] = $org_id;
+    }
+
+    $deal = pipedriveRequest('/deals', 'POST', $deal_data);
+
+    return $deal['data']['id'] ?? null;
+}
+
+function addPipedriveNote($deal_id, $data) {
+    $score_emoji = $data['assessment_score'] >= 70 ? '🟢' : ($data['assessment_score'] >= 50 ? '🟡' : '🔴');
+    $urgency_emoji = $data['urgency_level'] === 'ZEER HOOG' ? '🔥' : ($data['urgency_level'] === 'HOOG' ? '⚡' : '📋');
+
+    $note_content = "
+## Recruitment APK Assessment Resultaten
+
+**Datum:** {$data['timestamp']}
+
+### Scores
+- $score_emoji **Assessment Score:** {$data['assessment_score']}% ({$data['score_category']})
+- **Lead Score:** {$data['lead_score']}/100
+- **Pijn Level:** {$data['pain_level']}
+- $urgency_emoji **Urgentie:** {$data['urgency_level']}
+
+### Bedrijfsinformatie
+- **Sector:** {$data['sector']}
+- **Bedrijfsgrootte:** {$data['company_size']}
+
+### Aanbevolen Actie
+";
+
+    if ($data['urgency_level'] === 'ZEER HOOG') {
+        $note_content .= "🔥 **URGENT:** Direct contact opnemen! Hoge pijn, lage score.";
+    } elseif ($data['urgency_level'] === 'HOOG') {
+        $note_content .= "⚡ Contact opnemen binnen 24 uur";
+    } else {
+        $note_content .= "📅 Follow-up inplannen deze week";
+    }
+
+    $note_content .= "\n\n---\n*Automatisch gegenereerd door Recruitment APK*";
+
+    pipedriveRequest('/notes', 'POST', [
+        'deal_id' => $deal_id,
+        'content' => $note_content
+    ]);
+}
+
 // Hoofdlogica
 try {
     // Rate limiting
@@ -335,13 +583,27 @@ try {
         $email_sent = sendEmailNotification($data);
     }
 
+    // Pipedrive CRM integratie - maak deal aan in recruitmentapk pipeline
+    $pipedrive_result = ['success' => false];
+    if (ENABLE_PIPEDRIVE) {
+        $pipedrive_result = createPipedriveDeal($data);
+        if ($pipedrive_result['success']) {
+            error_log(sprintf(
+                "Pipedrive deal created: %s (Deal ID: %s, Pipeline: recruitmentapk)",
+                $data['company'],
+                $pipedrive_result['deal_id']
+            ));
+        }
+    }
+
     // Log succesvolle submission
     error_log(sprintf(
-        "FlowMaster Assessment submitted: %s (%s) - Score: %d%% - Urgency: %s",
+        "Recruitment APK Assessment submitted: %s (%s) - Score: %d%% - Urgency: %s - Pipedrive: %s",
         $data['company'],
         $data['email'],
         $data['assessment_score'],
-        $data['urgency_level']
+        $data['urgency_level'],
+        $pipedrive_result['success'] ? 'OK' : 'SKIP'
     ));
 
     // Success response
@@ -352,6 +614,8 @@ try {
         'data' => [
             'csv_saved' => $csv_saved,
             'email_sent' => $email_sent,
+            'pipedrive_synced' => $pipedrive_result['success'],
+            'pipedrive_deal_id' => $pipedrive_result['deal_id'] ?? null,
             'timestamp' => $data['timestamp']
         ]
     ]);

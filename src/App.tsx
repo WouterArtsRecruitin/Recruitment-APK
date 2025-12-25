@@ -4,6 +4,7 @@ import { SEOHead } from './components/SEOHead';
 import PerformanceOptimizer, { ResourceHints } from './components/PerformanceOptimizer';
 import { AnalyticsProvider } from './components/AnalyticsProvider';
 import { MetaPixel } from './components/MetaPixel';
+import { MicrosoftClarity } from './components/MicrosoftClarity';
 import { MetaCampaignPage } from './pages/MetaCampaignPage';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <ResourceHints />
         <PerformanceOptimizer />
         <MetaPixel />
+        <MicrosoftClarity projectId={import.meta.env.VITE_CLARITY_PROJECT_ID} />
 
         <Routes>
           {/* Main Assessment Page */}

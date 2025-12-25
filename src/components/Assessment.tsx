@@ -7,6 +7,8 @@ import { ExitIntentPopup } from './ExitIntentPopup';
 import { TrustBarCompact } from './TrustBar';
 import { WhatsAppButton } from './WhatsAppButton';
 import { UrgencyBanner } from './UrgencyBanner';
+import { TestimonialsCarousel } from './TestimonialsCarousel';
+import { clarityTrack } from './MicrosoftClarity';
 import {
   trackAssessmentStarted,
   trackAssessmentCompleted,
@@ -166,11 +168,13 @@ export function Assessment() {
 
   const handleStart = useCallback(() => {
     trackAssessmentStarted();
+    clarityTrack.assessmentStarted();
     setCurrentStep('assessment');
   }, []);
 
   const handleClose = useCallback(() => {
     trackAssessmentAbandoned();
+    clarityTrack.assessmentAbandoned();
     setCurrentStep('welcome');
   }, []);
 
@@ -394,15 +398,25 @@ export function Assessment() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2 }}
-              className="mb-12"
+              className="mb-8"
             >
               <TrustBarCompact />
+            </motion.div>
+
+            {/* Testimonials Carousel */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.5 }}
+              className="w-full max-w-4xl mx-auto mb-12"
+            >
+              <TestimonialsCarousel />
             </motion.div>
 
             {/* Footer - Recruitin Branding */}
             <motion.footer
               variants={staggerContainer}
-              className="mt-24 md:mt-40 flex flex-col items-center gap-6"
+              className="mt-12 md:mt-20 flex flex-col items-center gap-6"
             >
               <motion.div
                 variants={fadeInUp}

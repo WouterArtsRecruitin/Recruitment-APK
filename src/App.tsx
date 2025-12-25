@@ -5,6 +5,7 @@ import PerformanceOptimizer, { ResourceHints } from './components/PerformanceOpt
 import { AnalyticsProvider } from './components/AnalyticsProvider';
 import { MetaPixel } from './components/MetaPixel';
 import { MicrosoftClarity } from './components/MicrosoftClarity';
+import { GoogleAdsRemarketing } from './components/GoogleAdsRemarketing';
 import { ABTestingProvider, ABTestDebugPanel } from './components/ABTesting';
 import { MetaCampaignPage } from './pages/MetaCampaignPage';
 
@@ -18,6 +19,7 @@ function App() {
           <PerformanceOptimizer />
           <MetaPixel />
           <MicrosoftClarity projectId={import.meta.env.VITE_CLARITY_PROJECT_ID} />
+          <GoogleAdsRemarketing conversionId={import.meta.env.VITE_GOOGLE_ADS_ID} />
 
           <Routes>
             {/* Main Assessment Page */}

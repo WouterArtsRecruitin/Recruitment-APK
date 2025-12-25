@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Globe, Mail, Phone, Loader2 } from 'lucide-react';
+import { ArrowRight, Globe, Mail, Phone, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { SocialProofToast } from './SocialProofToast';
+import { ExitIntentPopup } from './ExitIntentPopup';
+import { TrustBarCompact } from './TrustBar';
+import { WhatsAppButton } from './WhatsAppButton';
+import { UrgencyBanner } from './UrgencyBanner';
 import {
   trackAssessmentStarted,
   trackAssessmentCompleted,
@@ -245,7 +249,12 @@ export function Assessment() {
   // --------------------------------------------------------------------------
 
   return (
-    <div className="min-h-dvh relative flex items-center justify-center p-4 bg-slate-950 overflow-hidden font-sans">
+    <div className="min-h-dvh relative flex flex-col bg-slate-950 overflow-hidden font-sans">
+      {/* Urgency Banner at Top */}
+      <UrgencyBanner variant="banner" />
+
+      {/* Main Content Area */}
+      <div className="flex-1 relative flex items-center justify-center p-4">
       {/* Background Effects */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         {/* Base */}
@@ -316,10 +325,33 @@ export function Assessment() {
               .
             </motion.p>
 
-            {/* CTA Button */}
+            {/* Value Propositions */}
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8"
+            >
+              {[
+                { icon: <CheckCircle className="w-4 h-4" />, text: '100% Gratis' },
+                { icon: <CheckCircle className="w-4 h-4" />, text: 'Binnen 5 minuten klaar' },
+                { icon: <CheckCircle className="w-4 h-4" />, text: 'Direct inzicht' },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 + index * 0.1 }}
+                  className="flex items-center gap-2 text-green-400 text-sm font-medium"
+                >
+                  {item.icon}
+                  <span>{item.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* CTA Button - Improved Copy */}
             <motion.div
               variants={heroCTA}
-              className="relative group inline-block mb-12"
+              className="relative group inline-block mb-8"
             >
               <motion.div
                 className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-orange-400 rounded-full blur -z-10"
@@ -339,9 +371,9 @@ export function Assessment() {
                   onClick={handleStart}
                   size="lg"
                   className="bg-orange-500 hover:bg-orange-600 text-white text-lg md:text-xl px-12 py-8 h-auto rounded-full shadow-2xl transition-all font-bold tracking-wide focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-slate-950"
-                  aria-label="Start de Recruitment APK Audit"
+                  aria-label="Ontdek jouw recruitment score in 5 minuten"
                 >
-                  Start de Audit
+                  Ontdek Jouw Score
                   <motion.span
                     className="inline-block ml-2"
                     animate={{ x: [0, 4, 0] }}
@@ -355,6 +387,16 @@ export function Assessment() {
                   </motion.span>
                 </Button>
               </motion.div>
+            </motion.div>
+
+            {/* Trust Bar */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              className="mb-12"
+            >
+              <TrustBarCompact />
             </motion.div>
 
             {/* Footer - Recruitin Branding */}
@@ -427,6 +469,13 @@ export function Assessment() {
 
       {/* Social Proof Toast */}
       <SocialProofToast />
+      </div>
+
+      {/* WhatsApp Floating Button */}
+      <WhatsAppButton />
+
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup />
     </div>
   );
 }

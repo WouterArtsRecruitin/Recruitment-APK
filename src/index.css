@@ -2,36 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ── BraveBrand Design System ──────────────────────────────────────── */
+:root {
+  --bg:      #05080c;
+  --bg-card: rgba(17, 24, 34, 0.6);
+  --bg-up:   rgba(12, 18, 28, 0.8);
+  --border:  rgba(30, 45, 64, 0.6);
+  --primary: #09aedd;
+  --primary-hover: #0cc0f4;
+  --amber:   #f5a009;
+  --green:   #1db87a;
+  --fg:      #f0f4f8;
+  --muted:   #94a3b8;
+  --font-h:  'Outfit', system-ui, sans-serif;
+  --font-b:  'Outfit', system-ui, sans-serif;
+  --font-m:  'IBM Plex Mono', monospace;
+  --r:       12px;
 }
 
+/* ── Base ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 html {
+  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #0f172a;
-  color: #ffffff;
+  font-family: var(--font-b);
+  background-color: var(--bg);
+  color: var(--fg);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Loading state */
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-h);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+/* ── Loading Spinner (BraveBrand cyan) ──────────────────────────────── */
 #root:empty::before {
   content: "";
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(249, 115, 22, 0.2);
-  border-top-color: #f97316;
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(9, 174, 221, 0.2);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -40,26 +62,147 @@ body {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Prevent layout shift */
-.hero-container {
-  min-height: 100vh;
-  contain: layout style paint;
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(30, 45, 64, 0.8); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(9, 174, 221, 0.3); }
+
+/* ── BraveBrand Utilities ───────────────────────────────────────────── */
+
+/* Tags / Badges */
+.bb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-m);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.bb-tag-primary {
+  background: rgba(9,174,221,.12);
+  color: var(--primary);
+  border: 1px solid rgba(9,174,221,.25);
+}
+.bb-tag-amber {
+  background: rgba(245,160,9,.12);
+  color: var(--amber);
+  border: 1px solid rgba(245,160,9,.3);
+}
+.bb-tag-green {
+  background: rgba(29,184,122,.10);
+  color: var(--green);
+  border: 1px solid rgba(29,184,122,.25);
+}
+.bb-tag-muted {
+  background: var(--bg-up);
+  color: var(--muted);
+  border: 1px solid var(--border);
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 10px;
+/* Eyebrow labels */
+.bb-eyebrow {
+  font-family: var(--font-m);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
 }
 
-::-webkit-scrollbar-track {
-  background: #1e293b;
+/* Card */
+.bb-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: border-color 0.2s;
+}
+.bb-card:hover {
+  border-color: rgba(9,174,221,.3);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 5px;
+/* Buttons */
+.bb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-family: var(--font-h);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: none;
+  white-space: nowrap;
+}
+.bb-btn-primary {
+  background: var(--primary);
+  color: var(--bg);
+}
+.bb-btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(9,174,221,.4);
+}
+.bb-btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.bb-btn-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(9,174,221,.06);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+/* Mono label */
+.bb-mono {
+  font-family: var(--font-m);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Reveal animations */
+.bb-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.bb-reveal.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bb-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Glow effect */
+.bb-glow-bg {
+  background-image:
+    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(9,174,221,.055) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 15% 30%, rgba(9,174,221,.04) 0%, transparent 60%);
+}
+
+/* JotForm embed container */
+.jotform-wrapper {
+  width: 100%;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.jotform-wrapper iframe {
+  width: 100%;
+  border: none;
+  min-height: 600px;
 }

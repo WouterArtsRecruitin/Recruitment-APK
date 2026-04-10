@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 // Meta Pixel ID - Replace with your actual Pixel ID from Facebook Business Manager
-export const FB_PIXEL_ID = "757606233848402";
+export const FB_PIXEL_ID = "238226887541404";
 
 // Track page views
 export const pageview = () => {

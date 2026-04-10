@@ -41,7 +41,7 @@ declare global {
 
 export const ANALYTICS_CONFIG = {
   ga: {
-    measurementId: import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX',
+    measurementId: import.meta.env.VITE_GA_MEASUREMENT_ID || '',
     enabled: import.meta.env.VITE_ENABLE_ANALYTICS !== 'false',
   },
   fb: {

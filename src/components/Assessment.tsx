@@ -9,7 +9,7 @@ import { WhatsAppButton } from './WhatsAppButton';
 
 // 🔧 JOTFORM: Vervang dit ID met jouw echte JotForm form ID
 // Voorbeeld: "https://form.jotform.com/251234567890" → ID is "251234567890"
-const JOTFORM_FORM_ID = "JOTFORM_ID_HIER";
+const JOTFORM_FORM_ID = import.meta.env.VITE_JOTFORM_FORM_ID || "";
 const JOTFORM_EMBED_URL = `https://form.jotform.com/${JOTFORM_FORM_ID}`;
 
 const CONTACT_INFO = {
@@ -252,22 +252,38 @@ function JotFormView({ onClose }: { onClose: () => void }) {
 
       {/* JotForm Embed */}
       <main className="flex-1 w-full overflow-hidden" style={{ minHeight: '600px' }}>
-        <iframe
-          id="JotFormIFrame"
-          title="Recruitment APK Assessment"
-          onLoad={() => window.parent.scrollTo(0, 0)}
-          allowTransparency={true}
-          allow="geolocation; microphone; camera; fullscreen"
-          src={JOTFORM_EMBED_URL}
-          frameBorder="0"
-          style={{
-            width: '100%',
-            height: '100%',
-            minHeight: 'calc(100vh - 64px)',
-            border: 'none',
-            background: 'var(--bg)',
-          }}
-        />
+        {!JOTFORM_FORM_ID ? (
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="bb-card p-8 text-center max-w-md">
+              <p className="text-lg font-bold mb-2" style={{ color: 'var(--fg)' }}>
+                Assessment tijdelijk niet beschikbaar
+              </p>
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
+                Neem contact op via{' '}
+                <a href="mailto:info@recruitin.nl" style={{ color: 'var(--primary)' }}>
+                  info@recruitin.nl
+                </a>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            id="JotFormIFrame"
+            title="Recruitment APK Assessment"
+            onLoad={() => window.parent.scrollTo(0, 0)}
+            allowTransparency={true}
+            allow="geolocation; microphone; camera; fullscreen"
+            src={JOTFORM_EMBED_URL}
+            frameBorder="0"
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: 'calc(100vh - 64px)',
+              border: 'none',
+              background: 'var(--bg)',
+            }}
+          />
+        )}
       </main>
     </div>
   );

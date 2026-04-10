@@ -4,51 +4,26 @@ import { CheckCircle2, ArrowRight, Phone, MessageCircle, Calendar } from 'lucide
 import { Button } from '../components/ui/button';
 import { event as trackFbEvent } from '../components/MetaPixel';
 
-// Typeform ID
-const TYPEFORM_ID = "01KARGCADMYDCG24PA4FWVKZJ2";
-
-interface TypeformWindow extends Window {
-  tf?: {
-    load: () => void;
-  };
-}
+// JotForm ID from environment
+const JOTFORM_FORM_ID = import.meta.env.VITE_JOTFORM_FORM_ID || "";
 
 export function MetaCampaignPage() {
   const [currentStep, setCurrentStep] = useState<'welcome' | 'assessment' | 'success'>('welcome');
   const [userData, setUserData] = useState({ firstName: '', email: '' });
 
   useEffect(() => {
-    // Check for URL parameters to see if user has been redirected from Typeform
+    // Check for URL parameters to see if user has been redirected after form submission
     const params = new URLSearchParams(window.location.search);
     const stepParam = params.get('step');
     const firstName = params.get('first_name') || params.get('name') || '';
     const email = params.get('email') || '';
 
-    if (stepParam === 'success' || params.get('typeform-submission-id')) {
+    if (stepParam === 'success') {
       setUserData({ firstName, email });
       setCurrentStep('success');
       trackFbEvent('CompleteRegistration', { content_name: 'Recruitment Quickscan' });
     }
   }, []);
-
-  // Re-initialize Typeform when switching to assessment step
-  useEffect(() => {
-    if (currentStep === 'assessment') {
-      const scriptSrc = "//embed.typeform.com/next/embed.js";
-
-      if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
-        const script = document.createElement('script');
-        script.src = scriptSrc;
-        script.async = true;
-        document.body.appendChild(script);
-      } else {
-        const tfWindow = window as TypeformWindow;
-        if (tfWindow.tf && typeof tfWindow.tf.load === 'function') {
-          tfWindow.tf.load();
-        }
-      }
-    }
-  }, [currentStep]);
 
   const handleStart = () => {
     trackFbEvent('InitiateCheckout', { content_name: 'Recruitment Quickscan' });
@@ -235,7 +210,38 @@ export function MetaCampaignPage() {
           </button>
        </div>
        <div className="flex-1 w-full h-full bg-slate-900 relative overflow-hidden">
-          <div data-tf-live={TYPEFORM_ID} className="w-full h-full"></div>
+          {!JOTFORM_FORM_ID ? (
+            <div className="flex-1 flex items-center justify-center p-8 h-full">
+              <div className="bg-slate-800 border border-white/10 p-8 rounded-2xl text-center max-w-md">
+                <p className="text-lg font-bold mb-2 text-white">
+                  Assessment tijdelijk niet beschikbaar
+                </p>
+                <p className="text-slate-400 text-sm">
+                  Neem contact op via{' '}
+                  <a href="mailto:info@recruitin.nl" className="text-orange-400 hover:text-orange-300">
+                    info@recruitin.nl
+                  </a>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <iframe
+              id="JotFormIFrame"
+              title="Recruitment APK Assessment"
+              onLoad={() => window.parent.scrollTo(0, 0)}
+              allowTransparency={true}
+              allow="geolocation; microphone; camera; fullscreen"
+              src={`https://form.jotform.com/${JOTFORM_FORM_ID}`}
+              frameBorder="0"
+              style={{
+                width: '100%',
+                height: '100%',
+                minHeight: 'calc(100vh - 64px)',
+                border: 'none',
+                background: '#0f172a',
+              }}
+            />
+          )}
        </div>
     </div>
   );

@@ -7,12 +7,10 @@ import { ArrowLeft, Phone, Mail, CheckCircle, AlertTriangle, XCircle, TrendingUp
 // ============================================================================
 
 const CATEGORIES = [
-  { name: 'Processen & Organisatie', icon: '🔧', questions: [1, 6, 8, 14], description: 'Evaluatie, doorlooptijd, documentatie, reactiesnelheid' },
-  { name: 'Technologie & Tools', icon: '💻', questions: [4, 19, 27], description: 'ATS, screening software, video interviewing' },
-  { name: 'Talent Attraction', icon: '🎯', questions: [7, 9, 12, 16, 17, 21, 25], description: 'Employer branding, sourcing, referrals, social media' },
-  { name: 'Candidate Experience', icon: '⭐', questions: [2, 15, 18, 20, 24], description: 'Onboarding, communicatie, cultural fit, feedback' },
-  { name: 'Data & Analytics', icon: '📊', questions: [3, 5, 10, 11, 23, 26, 28, 29], description: 'KPIs, ROI, training, benchmarking, partnerships, improvement' },
-  { name: 'Diversiteit & Strategie', icon: '🌍', questions: [13, 22], description: 'D&I beleid, assessment methoden' },
+  { name: 'Processen', icon: '🔧', description: 'Recruitment workflow, documentatie, time-to-hire, samenwerking' },
+  { name: 'Technologie', icon: '💻', description: 'ATS/CRM, screening software, video interviewing, assessment tools' },
+  { name: 'Talent Attraction', icon: '🎯', description: 'Employer branding, sourcing, referrals, social media, D&I' },
+  { name: 'Data & Analytics', icon: '📊', description: 'KPI tracking, data-driven decisions, ROI, feedback, benchmarking' },
 ];
 
 const SECTOR_BENCHMARKS: Record<string, number> = {
@@ -54,24 +52,20 @@ function getStatusIcon(p: number) {
 function getStrength(cat: string, p: number): string {
   if (p < 35) return '';
   const strengths: Record<string, Record<string, string>> = {
-    'Processen & Organisatie': { high: 'Gestroomlijnd proces met snelle response en systematische evaluatie', mid: 'Functionele processen met ruimte voor meer structuur' },
-    'Technologie & Tools': { high: 'Professionele tooling met automated workflows', mid: 'Basis tooling aanwezig, automation mogelijk' },
-    'Talent Attraction': { high: 'Actieve employer branding en multi-channel sourcing', mid: 'Aanwezigheid op kernkanalen, uitbreiding mogelijk' },
-    'Candidate Experience': { high: 'Premium candidate journey met gestructureerde feedback', mid: 'Basis communicatie en onboarding aanwezig' },
-    'Data & Analytics': { high: 'Data-driven besluitvorming met KPI dashboards', mid: 'Basis rapportage, meer inzicht mogelijk' },
-    'Diversiteit & Strategie': { high: 'Actief D&I beleid met gestructureerde assessments', mid: 'Awareness aanwezig, beleid in ontwikkeling' },
+    'Processen': { high: 'Gestroomlijnd proces met snelle response, systematische evaluatie en sterke HR-management samenwerking', mid: 'Functionele processen met basis documentatie en redelijke doorlooptijden' },
+    'Technologie': { high: 'Professionele ATS en screening tools met automated workflows en video assessment', mid: 'Basis tooling aanwezig met ruimte voor automation en AI-integratie' },
+    'Talent Attraction': { high: 'Actieve employer branding, multi-channel sourcing, sterk referral programma en D&I beleid', mid: 'Aanwezigheid op kernkanalen met basis branding en sourcing activiteiten' },
+    'Data & Analytics': { high: 'Data-driven besluitvorming met KPI dashboards, ROI tracking en predictive analytics', mid: 'Basis rapportage aanwezig met ruimte voor meer data-gedreven beslissingen' },
   };
   return strengths[cat]?.[p >= 65 ? 'high' : 'mid'] || '';
 }
 
 function getOpportunity(cat: string, p: number): string {
   const opps: Record<string, Record<string, string>> = {
-    'Processen & Organisatie': { low: 'Start met vastleggen van werkwijzen en stel evaluatiecyclus in', mid: 'Automatiseer workflows en verkort doorlooptijd naar <30 dagen', high: 'Predictive hiring en advanced process automation' },
-    'Technologie & Tools': { low: 'Implementeer een basis ATS voor gestructureerde screening', mid: 'Upgrade naar automated screening en video assessment', high: 'AI-powered matching en predictive analytics toevoegen' },
-    'Talent Attraction': { low: 'Bouw een employer brand en start actief sourcen', mid: 'Diversifieer kanalen en implementeer referral programma', high: 'Talent community bouwen met continue engagement' },
-    'Candidate Experience': { low: 'Implementeer basis communicatie-templates en onboarding', mid: 'Structureer de candidate journey en verzamel feedback', high: 'NPS tracking en personalized candidate journeys' },
-    'Data & Analytics': { low: 'Begin met bijhouden van doorlooptijd en cost-per-hire', mid: 'Implementeer KPI dashboard en train hiring managers', high: 'Predictive analytics en continuous optimization cycle' },
-    'Diversiteit & Strategie': { low: 'Ontwikkel een basis D&I awareness programma', mid: 'Stel concrete D&I doelen en meet voortgang', high: 'Geavanceerde assessment centers met bias detection' },
+    'Processen': { low: 'Start met vastleggen van werkwijzen, stel een evaluatiecyclus in en breng doorlooptijden in kaart', mid: 'Automatiseer workflows, verkort doorlooptijd naar <30 dagen en versterk de HR-hiring manager samenwerking', high: 'Predictive hiring implementeren en advanced process automation voor marktleidende snelheid' },
+    'Technologie': { low: 'Implementeer een basis ATS voor gestructureerde screening — direct 8+ uur/week besparing', mid: 'Upgrade naar automated screening, video assessment en gestructureerde competentie testen', high: 'AI-powered candidate matching en predictive analytics voor maximale hiring kwaliteit' },
+    'Talent Attraction': { low: 'Bouw een employer brand, start actief sourcen op LinkedIn en ontwikkel een basis D&I beleid', mid: 'Diversifieer kanalen, implementeer referral programma (>30% hires) en versterk social recruiting', high: 'Dynamic talent community bouwen met continue engagement en employer brand NPS tracking' },
+    'Data & Analytics': { low: 'Begin met bijhouden van doorlooptijd en cost-per-hire — zonder data kun je niet verbeteren', mid: 'Implementeer KPI dashboard, train hiring managers structureel en start met salary benchmarking', high: 'Predictive analytics, continuous optimization cycle en real-time performance monitoring' },
   };
   const level = p >= 65 ? 'high' : p >= 35 ? 'mid' : 'low';
   return opps[cat]?.[level] || '';

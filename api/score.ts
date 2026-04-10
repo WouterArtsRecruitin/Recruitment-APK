@@ -9,13 +9,21 @@ const PIPEDRIVE_API_TOKEN = process.env.PIPEDRIVE_API_TOKEN || '';
 const PIPEDRIVE_PIPELINE_ID = 14;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || '';
-// Score threshold: 60% van 290 = 174 punten → Path A (sales outreach)
-const SCORE_THRESHOLD = 174;
-const MAX_SCORE = 290; // 29 vragen × 10 punten
+// Score threshold: 60% van 100 = 60 punten → Path A (sales outreach)
+const SCORE_THRESHOLD = 60;
+const MAX_SCORE = 100; // 4 categorieën × 25 punten
 
 // ============================================================================
 // TYPES
 // ============================================================================
+
+interface CategoryScore {
+  name: string;
+  score: number;
+  maxScore: number;
+  percent: number;
+  questionCount: number;
+}
 
 interface ScoredLead {
   email: string;
@@ -26,51 +34,136 @@ interface ScoredLead {
   teamSize: string;
   score: number;
   scorePercent: number;
+  categories: CategoryScore[];
   answers: Record<string, string>;
 }
 
 // ============================================================================
-// SCORING — 29 vragen, 0/3/7/10 punten per antwoord
+// SCORING — 29 vragen → 4 categorieën (0-25 elk, totaal 0-100)
 // ============================================================================
 
-// Antwoord → punten mapping (positie in de radio buttons)
-const POINTS_MAP: Record<number, number> = { 0: 0, 1: 3, 2: 7, 3: 10 };
+// Vraagnummers (1-indexed, zoals in questions.js) per categorie
+// Processen: evaluatie(1), doorlooptijd(6), documentatie(8), reactiesnelheid(14), samenwerking(5)
+// Technologie: tools(4), screening(19), video(27), assessment(22)
+// Talent: branding(7), intern(9), proactief(12), marketing(16), referral(17), talentpool(21), social(25), D&I(13)
+// Data: effectiviteit(3), training(10), datadriven(11), feedback(20), ROI(23), communicatie(24), salary(26), partners(28), improvement(29), cultural(18)
 
-function calculateScore(data: Record<string, string>): number {
-  let score = 0;
+const CATEGORY_QUESTIONS: Record<string, number[]> = {
+  'Processen': [1, 5, 6, 8, 14],       // 5 vragen → max 50 raw → schaal naar 25
+  'Technologie': [4, 19, 22, 27],       // 4 vragen → max 40 raw → schaal naar 25
+  'Talent Attraction': [7, 9, 12, 13, 16, 17, 21, 25], // 8 vragen → max 80 raw → schaal naar 25
+  'Data & Analytics': [2, 3, 10, 11, 15, 18, 20, 23, 24, 26, 28, 29], // 12 vragen → max 120 raw → schaal naar 25
+};
 
-  // JotForm radio buttons sturen het geselecteerde antwoord als tekst
-  // We matchen op de antwoordoptie index (0=slechtst, 3=best)
-  const answerPoints: Record<string, number[]> = {
-    // Per vraag: [punten optie 1, punten optie 2, punten optie 3, punten optie 4]
-    // Alle 29 vragen volgen hetzelfde patroon: 0, 3, 7, 10
-  };
+function scoreAnswer(answerText: string): number {
+  if (!answerText) return 0;
+  const v = answerText.toLowerCase();
 
-  // Zoek alle assessment antwoorden (Q15-Q43 in JotForm)
+  // 10 punten — top niveau
+  if (v.includes('volledig') || v.includes('advanced') || v.includes('geavanceerd') ||
+      v.includes('ai-') || v.includes('predictive') || v.includes('continuous') ||
+      v.includes('40%+') || v.includes('minder dan 1') || v.includes('dynamic') ||
+      v.includes('premium') || v.includes('high-performance') || v.includes('award') ||
+      v.includes('personalized') || v.includes('integrated') || v.includes('binnen 24') ||
+      v.includes('real-time') || v.includes('innovation') || v.includes('voortdurend') ||
+      v.includes('maandelijks met data')) {
+    return 10;
+  }
+
+  // 7 punten — goed niveau
+  if (v.includes('gestructureer') || v.includes('regulier') || v.includes('actieve') ||
+      v.includes('kwartaal') || v.includes('25-40%') || v.includes('1-2 maanden') ||
+      v.includes('uitgebreid') || v.includes('proactieve') || v.includes('multi-') ||
+      v.includes('automated') || v.includes('systematisch') || v.includes('strategisch') ||
+      v.includes('binnen een week') || v.includes('professionele')) {
+    return 7;
+  }
+
+  // 3 punten — basis niveau
+  if (v.includes('basis') || v.includes('basic') || v.includes('ad-hoc') ||
+      v.includes('jaarlijks') || v.includes('10-25%') || v.includes('2-3 maanden') ||
+      v.includes('informeel') || v.includes('occasione') || v.includes('standard') ||
+      v.includes('bij aanstelling')) {
+    return 3;
+  }
+
+  // 0 punten — niet aanwezig
+  if (v.includes('nooit') || v.includes('geen') || v.includes('niet') ||
+      v.includes('helemaal niet') || v.includes('alleen') || v.includes('handmatig') ||
+      v.includes('minimale') || v.includes('0-10%') || v.includes('meer dan 3')) {
+    return 0;
+  }
+
+  return 0; // Onherkenbaar
+}
+
+function calculateCategoryScores(data: Record<string, string>): CategoryScore[] {
+  // Bouw een map van vraagnummer → antwoordtekst
+  // JotForm vragen Q15-Q43 = assessment vragen 1-29
+  const questionAnswers: Record<number, string> = {};
+
   for (const [key, value] of Object.entries(data)) {
     if (!value || typeof value !== 'string') continue;
     const lk = key.toLowerCase();
 
     // Skip contactvelden
-    if (['email', 'naam', 'bedrijf', 'telefoon', 'sector', 'provincie', 'formid', 'submissionid'].some(s => lk.includes(s))) continue;
+    if (['email', 'naam', 'bedrijf', 'telefoon', 'sector', 'provincie', 'formid', 'submissionid', 'versturen'].some(s => lk.includes(s))) continue;
 
-    // Match assessment antwoorden op keywords in de antwoordtekst
-    const v = value.toLowerCase();
-
-    // Patroon: eerste optie bevat negatieve woorden, laatste optie bevat "advanced/volledig/geavanceerd"
-    if (v.includes('nooit') || v.includes('geen') || v.includes('niet') || v.includes('helemaal niet') || v.includes('alleen') || v.includes('handmatig') || v.includes('minimale') || v.includes('0-10%') || v.includes('meer dan 3')) {
-      score += 0;
-    } else if (v.includes('basis') || v.includes('basic') || v.includes('ad-hoc') || v.includes('jaarlijks') || v.includes('10-25%') || v.includes('2-3 maanden') || v.includes('informeel') || v.includes('occasione') || v.includes('standard') || v.includes('bij aanstelling')) {
-      score += 3;
-    } else if (v.includes('gestructureer') || v.includes('regulier') || v.includes('actieve') || v.includes('kwartaal') || v.includes('25-40%') || v.includes('1-2 maanden') || v.includes('uitgebreid') || v.includes('proactieve') || v.includes('multi-') || v.includes('automated') || v.includes('systematisch') || v.includes('strategisch') || v.includes('binnen een week') || v.includes('professionele')) {
-      score += 7;
-    } else if (v.includes('volledig') || v.includes('advanced') || v.includes('geavanceerd') || v.includes('ai-') || v.includes('predictive') || v.includes('continuous') || v.includes('40%+') || v.includes('minder dan 1') || v.includes('dynamic') || v.includes('premium') || v.includes('high-performance') || v.includes('award') || v.includes('personalized') || v.includes('integrated') || v.includes('binnen 24') || v.includes('real-time') || v.includes('innovation') || v.includes('voortdurend') || v.includes('maandelijks met data')) {
-      score += 10;
+    // Probeer vraagnummer te extracten uit JotForm key (q15_, q16_, etc.)
+    const qMatch = key.match(/q(\d+)/i);
+    if (qMatch) {
+      const qNum = parseInt(qMatch[1]);
+      // Q15 in JotForm = vraag 1, Q16 = vraag 2, etc.
+      if (qNum >= 15 && qNum <= 43) {
+        questionAnswers[qNum - 14] = value;
+      }
     }
-    // Onherkenbare antwoorden tellen niet mee
   }
 
-  return score;
+  // Als geen q-nummers gevonden, probeer op volgorde (voor directe API tests)
+  if (Object.keys(questionAnswers).length === 0) {
+    let questionIndex = 1;
+    for (const [key, value] of Object.entries(data)) {
+      if (!value || typeof value !== 'string') continue;
+      const lk = key.toLowerCase();
+      if (['email', 'naam', 'bedrijf', 'telefoon', 'sector', 'provincie', 'formid', 'submissionid', 'versturen', 'score', 'max', 'company', 'contact'].some(s => lk.includes(s))) continue;
+      // Alleen antwoorden die op assessment lijken (niet kort, niet email-achtig)
+      if (value.length > 10 && !value.includes('@')) {
+        questionAnswers[questionIndex] = value;
+        questionIndex++;
+      }
+    }
+  }
+
+  console.log(`Found ${Object.keys(questionAnswers).length} assessment answers`);
+
+  return Object.entries(CATEGORY_QUESTIONS).map(([name, questions]) => {
+    let rawScore = 0;
+    const maxRaw = questions.length * 10;
+
+    for (const qNum of questions) {
+      const answer = questionAnswers[qNum];
+      if (answer) {
+        rawScore += scoreAnswer(answer);
+      }
+    }
+
+    // Schaal naar 0-25
+    const scaledScore = maxRaw > 0 ? Math.round((rawScore / maxRaw) * 25) : 0;
+    const percent = maxRaw > 0 ? Math.round((rawScore / maxRaw) * 100) : 0;
+
+    return {
+      name,
+      score: scaledScore,
+      maxScore: 25,
+      percent,
+      questionCount: questions.length,
+    };
+  });
+}
+
+function calculateTotalScore(categories: CategoryScore[]): number {
+  return categories.reduce((sum, cat) => sum + cat.score, 0);
 }
 
 function extractField(data: Record<string, string>, keywords: string[]): string | undefined {
@@ -137,8 +230,13 @@ function flattenJotFormData(data: Record<string, any>): Record<string, string> {
 
 function extractLead(data: Record<string, any>): ScoredLead {
   const flat = flattenJotFormData(data);
-  const score = calculateScore(flat);
+  const categories = calculateCategoryScores(flat);
+  const score = calculateTotalScore(categories);
   const scorePercent = Math.round((score / MAX_SCORE) * 100);
+
+  console.log('Category scores:', categories.map(c => `${c.name}: ${c.score}/25 (${c.percent}%)`).join(', '));
+  console.log(`Total: ${score}/${MAX_SCORE} (${scorePercent}%)`);
+
   return {
     email: extractField(flat, ['email', 'e-mail', 'emailadres', 'zakelijk']) || '',
     companyName: extractField(flat, ['bedrijfsnaam', 'bedrijf', 'company', 'organisatie']) || '',
@@ -148,6 +246,7 @@ function extractLead(data: Record<string, any>): ScoredLead {
     teamSize: extractField(flat, ['teamgrootte', 'team_size', 'fte']) || '',
     score,
     scorePercent,
+    categories,
     answers: flat,
   };
 }
@@ -211,10 +310,10 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
 
-  // Score kleur bepalen (op basis van percentage van 290)
+  // Score kleur bepalen (op basis van percentage van 100)
   const scorePercent = lead.scorePercent;
   const scoreColor = scorePercent >= 70 ? '#16a34a' : scorePercent >= 40 ? '#f59e0b' : '#ef4444';
-  const scoreLabel = scorePercent >= 70 ? 'GOED' : scorePercent >= 40 ? 'MATIG' : 'KRITIEK';
+  const scoreLabel = scorePercent >= 80 ? 'EXCELLENT' : scorePercent >= 60 ? 'GOED' : scorePercent >= 40 ? 'GEMIDDELD' : 'ONTWIKKELING NODIG';
 
   const resend = new Resend(RESEND_API_KEY);
   const { error } = await resend.emails.send({
@@ -245,10 +344,10 @@ async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Prom
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;">
 <tr><td style="padding:24px;text-align:center;">
 <table cellpadding="0" cellspacing="0" align="center">
-<tr><td style="width:80px;height:80px;border:3px solid ${scoreColor};border-radius:50%;text-align:center;font-size:28px;font-weight:bold;color:${scoreColor};line-height:80px;">${scorePercent}%</td></tr>
+<tr><td style="width:80px;height:80px;border:3px solid ${scoreColor};border-radius:50%;text-align:center;font-size:28px;font-weight:bold;color:${scoreColor};line-height:80px;">${lead.score}</td></tr>
 </table>
 <div style="margin-top:12px;font-weight:bold;color:white;background-color:${scoreColor};padding:4px 14px;display:inline-block;border-radius:4px;font-size:12px;letter-spacing:1px;">${scoreLabel}</div>
-<div style="margin-top:12px;font-size:13px;color:#6b7280;">Recruitment Gereedheid Score</div>
+<div style="margin-top:12px;font-size:13px;color:#6b7280;">Score: ${lead.score}/100</div>
 </td></tr>
 </table>
 </td></tr>
@@ -257,19 +356,16 @@ async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Prom
 <tr><td style="padding:0 30px 30px;">
 <div style="font-weight:bold;font-size:16px;margin-bottom:15px;">Beoordeelde gebieden</div>
 <table width="100%" cellpadding="0" cellspacing="0">
-${[
-  { name: 'Proces & Strategie', desc: 'Evaluatie, documentatie, doorlooptijd' },
-  { name: 'Technologie & Tools', desc: 'ATS, screening, video interviewing' },
-  { name: 'Talent Acquisition', desc: 'Sourcing, talent pools, referrals' },
-  { name: 'Employer Branding', desc: 'Strategie, marketing, social media' },
-  { name: 'Candidate Experience', desc: 'Communicatie, feedback, cultural fit' },
-  { name: 'Data & Optimalisatie', desc: 'KPIs, ROI, continuous improvement' },
-].map(cat => `<tr><td style="padding:8px 12px;background-color:white;border:1px solid #e5e7eb;margin-bottom:6px;border-radius:4px;">
+${lead.categories.map(cat => {
+  const cc = cat.percent >= 70 ? '#16a34a' : cat.percent >= 40 ? '#f59e0b' : '#ef4444';
+  const icon = cat.percent >= 70 ? '✓' : cat.percent >= 40 ? '⚠' : '✗';
+  return `<tr><td style="padding:10px 12px;background-color:white;border:1px solid #e5e7eb;margin-bottom:6px;border-radius:4px;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr>
-<td width="24" style="font-size:16px;padding-right:8px;color:#09aedd;">●</td>
-<td><span style="font-weight:bold;color:#1f2937;font-size:13px;">${cat.name}</span>
-<div style="font-size:11px;color:#6b7280;">${cat.desc}</div></td>
-</tr></table></td></tr>`).join('')}
+<td width="24" style="font-size:16px;padding-right:8px;color:${cc};">${icon}</td>
+<td><span style="font-weight:bold;color:#1f2937;font-size:13px;">${cat.name}</span></td>
+<td width="70" style="text-align:right;font-weight:bold;font-size:14px;color:${cc};">${cat.score}/25</td>
+</tr></table></td></tr>`;
+}).join('')}
 </table>
 </td></tr>
 
@@ -324,7 +420,7 @@ async function sendSlackNotification(lead: ScoredLead, dealId?: number): Promise
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${lead.companyName}\n*Contact:* ${lead.contactName}\n*Score:* ${lead.score}/${MAX_SCORE} (${lead.scorePercent}%) → ${path}\n*Sector:* ${lead.sector}${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
+      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${lead.companyName}\n*Contact:* ${lead.contactName}\n*Score:* ${lead.score}/${MAX_SCORE} → ${path}\n${lead.categories.map(c => `  ${c.name}: ${c.score}/25`).join('\n')}\n*Sector:* ${lead.sector}${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
     }),
   });
 }
@@ -362,13 +458,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dealId = dealResult.dealId;
     }
 
-    // Genereer rapport URL met score data
+    // Genereer rapport URL met score data + categorie scores
+    const catScores = lead.categories.map(c => c.percent).join(',');
     const rapportParams = new URLSearchParams({
       score: lead.score.toString(),
       max: MAX_SCORE.toString(),
       company: lead.companyName,
       contact: lead.contactName,
       sector: lead.sector,
+      cats: catScores,
     });
     const rapportUrl = `https://www.recruitmentapk.nl/rapport?${rapportParams.toString()}`;
 

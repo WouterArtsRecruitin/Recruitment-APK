@@ -9,7 +9,9 @@ const PIPEDRIVE_API_TOKEN = process.env.PIPEDRIVE_API_TOKEN || '';
 const PIPEDRIVE_PIPELINE_ID = 14;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || '';
-const SCORE_THRESHOLD = 10;
+// Score threshold: 60% van 290 = 174 punten → Path A (sales outreach)
+const SCORE_THRESHOLD = 174;
+const MAX_SCORE = 290; // 29 vragen × 10 punten
 
 // ============================================================================
 // TYPES
@@ -23,45 +25,50 @@ interface ScoredLead {
   sector: string;
   teamSize: string;
   score: number;
+  scorePercent: number;
   answers: Record<string, string>;
 }
 
 // ============================================================================
-// SCORING
+// SCORING — 29 vragen, 0/3/7/10 punten per antwoord
 // ============================================================================
+
+// Antwoord → punten mapping (positie in de radio buttons)
+const POINTS_MAP: Record<number, number> = { 0: 0, 1: 3, 2: 7, 3: 10 };
 
 function calculateScore(data: Record<string, string>): number {
   let score = 0;
 
-  // Teamgrootte: groter team = hogere urgentie
-  const teamSize = parseInt(extractField(data, ['teamgrootte', 'team_size', 'fte']) || '0');
-  if (teamSize >= 200) score += 4;
-  else if (teamSize >= 100) score += 3;
-  else if (teamSize >= 50) score += 2;
-  else if (teamSize >= 20) score += 1;
+  // JotForm radio buttons sturen het geselecteerde antwoord als tekst
+  // We matchen op de antwoordoptie index (0=slechtst, 3=best)
+  const answerPoints: Record<string, number[]> = {
+    // Per vraag: [punten optie 1, punten optie 2, punten optie 3, punten optie 4]
+    // Alle 29 vragen volgen hetzelfde patroon: 0, 3, 7, 10
+  };
 
-  // Sector: technisch MKB scoort hoger
-  const sector = extractField(data, ['sector', 'branche', 'industrie']) || '';
-  const techSectors = ['oil', 'gas', 'constructie', 'bouw', 'productie', 'automation', 'renewables', 'energie', 'techniek', 'industrie'];
-  if (techSectors.some(s => sector.toLowerCase().includes(s))) score += 3;
+  // Zoek alle assessment antwoorden (Q15-Q43 in JotForm)
+  for (const [key, value] of Object.entries(data)) {
+    if (!value || typeof value !== 'string') continue;
+    const lk = key.toLowerCase();
 
-  // Regio: Gelderland/Overijssel/Noord-Brabant = doelregio
-  const regio = extractField(data, ['regio', 'provincie', 'locatie', 'vestiging']) || '';
-  const targetRegios = ['gelderland', 'overijssel', 'noord-brabant', 'brabant'];
-  if (targetRegios.some(r => regio.toLowerCase().includes(r))) score += 2;
+    // Skip contactvelden
+    if (['email', 'naam', 'bedrijf', 'telefoon', 'sector', 'provincie', 'formid', 'submissionid'].some(s => lk.includes(s))) continue;
 
-  // Uitdaging/pijn: specifieke recruitment pijn scoort hoger
-  const challenge = extractField(data, ['uitdaging', 'challenge', 'probleem', 'wervingsuitdaging']) || '';
-  if (challenge.length > 50) score += 2;
+    // Match assessment antwoorden op keywords in de antwoordtekst
+    const v = value.toLowerCase();
 
-  // Email kwaliteit: zakelijk email scoort hoger
-  const email = extractField(data, ['email', 'e-mail', 'emailadres']) || '';
-  const freeProviders = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'live.nl'];
-  if (email && !freeProviders.some(p => email.toLowerCase().includes(p))) score += 2;
-
-  // Telefoon ingevuld = extra engagement
-  const phone = extractField(data, ['telefoon', 'phone', 'telefoonnummer']) || '';
-  if (phone && phone.length >= 10) score += 1;
+    // Patroon: eerste optie bevat negatieve woorden, laatste optie bevat "advanced/volledig/geavanceerd"
+    if (v.includes('nooit') || v.includes('geen') || v.includes('niet') || v.includes('helemaal niet') || v.includes('alleen') || v.includes('handmatig') || v.includes('minimale') || v.includes('0-10%') || v.includes('meer dan 3')) {
+      score += 0;
+    } else if (v.includes('basis') || v.includes('basic') || v.includes('ad-hoc') || v.includes('jaarlijks') || v.includes('10-25%') || v.includes('2-3 maanden') || v.includes('informeel') || v.includes('occasione') || v.includes('standard') || v.includes('bij aanstelling')) {
+      score += 3;
+    } else if (v.includes('gestructureer') || v.includes('regulier') || v.includes('actieve') || v.includes('kwartaal') || v.includes('25-40%') || v.includes('1-2 maanden') || v.includes('uitgebreid') || v.includes('proactieve') || v.includes('multi-') || v.includes('automated') || v.includes('systematisch') || v.includes('strategisch') || v.includes('binnen een week') || v.includes('professionele')) {
+      score += 7;
+    } else if (v.includes('volledig') || v.includes('advanced') || v.includes('geavanceerd') || v.includes('ai-') || v.includes('predictive') || v.includes('continuous') || v.includes('40%+') || v.includes('minder dan 1') || v.includes('dynamic') || v.includes('premium') || v.includes('high-performance') || v.includes('award') || v.includes('personalized') || v.includes('integrated') || v.includes('binnen 24') || v.includes('real-time') || v.includes('innovation') || v.includes('voortdurend') || v.includes('maandelijks met data')) {
+      score += 10;
+    }
+    // Onherkenbare antwoorden tellen niet mee
+  }
 
   return score;
 }
@@ -131,6 +138,7 @@ function flattenJotFormData(data: Record<string, any>): Record<string, string> {
 function extractLead(data: Record<string, any>): ScoredLead {
   const flat = flattenJotFormData(data);
   const score = calculateScore(flat);
+  const scorePercent = Math.round((score / MAX_SCORE) * 100);
   return {
     email: extractField(flat, ['email', 'e-mail', 'emailadres', 'zakelijk']) || '',
     companyName: extractField(flat, ['bedrijfsnaam', 'bedrijf', 'company', 'organisatie']) || '',
@@ -139,6 +147,7 @@ function extractLead(data: Record<string, any>): ScoredLead {
     sector: extractField(flat, ['sector', 'branche', 'industrie']) || '',
     teamSize: extractField(flat, ['teamgrootte', 'team_size', 'fte']) || '',
     score,
+    scorePercent,
     answers: flat,
   };
 }
@@ -202,8 +211,8 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
 
-  // Score kleur bepalen
-  const scorePercent = Math.round((lead.score / 14) * 100);
+  // Score kleur bepalen (op basis van percentage van 290)
+  const scorePercent = lead.scorePercent;
   const scoreColor = scorePercent >= 70 ? '#16a34a' : scorePercent >= 40 ? '#f59e0b' : '#ef4444';
   const scoreLabel = scorePercent >= 70 ? 'GOED' : scorePercent >= 40 ? 'MATIG' : 'KRITIEK';
 
@@ -236,7 +245,7 @@ async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;">
 <tr><td style="padding:24px;text-align:center;">
 <table cellpadding="0" cellspacing="0" align="center">
-<tr><td style="width:80px;height:80px;border:3px solid ${scoreColor};border-radius:50%;text-align:center;font-size:28px;font-weight:bold;color:${scoreColor};line-height:80px;">${lead.score}/14</td></tr>
+<tr><td style="width:80px;height:80px;border:3px solid ${scoreColor};border-radius:50%;text-align:center;font-size:28px;font-weight:bold;color:${scoreColor};line-height:80px;">${scorePercent}%</td></tr>
 </table>
 <div style="margin-top:12px;font-weight:bold;color:white;background-color:${scoreColor};padding:4px 14px;display:inline-block;border-radius:4px;font-size:12px;letter-spacing:1px;">${scoreLabel}</div>
 <div style="margin-top:12px;font-size:13px;color:#6b7280;">Recruitment Gereedheid Score</div>
@@ -249,16 +258,17 @@ async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
 <div style="font-weight:bold;font-size:16px;margin-bottom:15px;">Beoordeelde gebieden</div>
 <table width="100%" cellpadding="0" cellspacing="0">
 ${[
-  { name: 'Teamgrootte & Schaal', ok: (parseInt(lead.teamSize) || 0) >= 50 },
-  { name: 'Sector Match', ok: ['oil','gas','constructie','bouw','productie','automation','renewables','energie','techniek'].some(s => (lead.sector || '').toLowerCase().includes(s)) },
-  { name: 'Regionale Positionering', ok: lead.score >= 8 },
-  { name: 'Employer Branding', ok: lead.email && !['gmail.com','hotmail.com','outlook.com'].some(p => lead.email.includes(p)) },
-  { name: 'Candidate Engagement', ok: (lead.phone || '').length >= 10 },
+  { name: 'Proces & Strategie', desc: 'Evaluatie, documentatie, doorlooptijd' },
+  { name: 'Technologie & Tools', desc: 'ATS, screening, video interviewing' },
+  { name: 'Talent Acquisition', desc: 'Sourcing, talent pools, referrals' },
+  { name: 'Employer Branding', desc: 'Strategie, marketing, social media' },
+  { name: 'Candidate Experience', desc: 'Communicatie, feedback, cultural fit' },
+  { name: 'Data & Optimalisatie', desc: 'KPIs, ROI, continuous improvement' },
 ].map(cat => `<tr><td style="padding:8px 12px;background-color:white;border:1px solid #e5e7eb;margin-bottom:6px;border-radius:4px;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr>
-<td width="24" style="font-size:16px;padding-right:8px;">${cat.ok ? '✓' : '⚠'}</td>
-<td><span style="font-weight:bold;color:#1f2937;font-size:13px;">${cat.name}</span></td>
-<td width="60" style="text-align:right;font-size:12px;color:${cat.ok ? '#16a34a' : '#f59e0b'};">${cat.ok ? 'Goed' : 'Aandacht'}</td>
+<td width="24" style="font-size:16px;padding-right:8px;color:#09aedd;">●</td>
+<td><span style="font-weight:bold;color:#1f2937;font-size:13px;">${cat.name}</span>
+<div style="font-size:11px;color:#6b7280;">${cat.desc}</div></td>
 </tr></table></td></tr>`).join('')}
 </table>
 </td></tr>
@@ -314,7 +324,7 @@ async function sendSlackNotification(lead: ScoredLead, dealId?: number): Promise
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${lead.companyName}\n*Contact:* ${lead.contactName}\n*Score:* ${lead.score}/14 → ${path}\n*Sector:* ${lead.sector}\n*Team:* ${lead.teamSize} FTE${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
+      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${lead.companyName}\n*Contact:* ${lead.contactName}\n*Score:* ${lead.score}/${MAX_SCORE} (${lead.scorePercent}%) → ${path}\n*Sector:* ${lead.sector}${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
     }),
   });
 }

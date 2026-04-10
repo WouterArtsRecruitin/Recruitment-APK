@@ -8,6 +8,7 @@ import { MicrosoftClarity } from './components/MicrosoftClarity';
 import { GoogleAdsRemarketing } from './components/GoogleAdsRemarketing';
 import { MetaCampaignPage } from './pages/MetaCampaignPage';
 import { ThankYou } from './components/ThankYou';
+import { Rapport } from './components/Rapport';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<Assessment />} />
           <Route path="/meta" element={<MetaCampaignPage />} />
           <Route path="/bedankt" element={<ThankYou />} />
+          <Route path="/rapport" element={<Rapport />} />
         </Routes>
       </AnalyticsProvider>
     </BrowserRouter>

@@ -208,7 +208,7 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 // RESEND EMAIL
 // ============================================================================
 
-async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
+async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
 
   // Score kleur bepalen (op basis van percentage van 290)
@@ -287,7 +287,7 @@ ${['Ons team analyseert uw antwoorden in detail', 'Binnen 24 uur ontvangt u het 
 <!-- CTA -->
 <tr><td style="padding:0 30px 20px;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#09aedd;padding:15px;text-align:center;border-radius:4px;">
-<a href="https://www.recruitmentapk.nl/bedankt" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Plan een gratis strategiegesprek →</a>
+<a href="${rapportUrl}" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Bekijk volledig rapport →</a>
 </td></tr></table>
 </td></tr>
 
@@ -362,9 +362,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dealId = dealResult.dealId;
     }
 
+    // Genereer rapport URL met score data
+    const rapportParams = new URLSearchParams({
+      score: lead.score.toString(),
+      max: MAX_SCORE.toString(),
+      company: lead.companyName,
+      contact: lead.contactName,
+      sector: lead.sector,
+    });
+    const rapportUrl = `https://www.recruitmentapk.nl/rapport?${rapportParams.toString()}`;
+
     // Email altijd sturen als er een emailadres is
     if (lead.email) {
-      await sendConfirmationEmail(lead);
+      await sendConfirmationEmail(lead, rapportUrl);
     }
 
     await sendSlackNotification(lead, dealId);

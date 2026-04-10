@@ -329,12 +329,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const data: Record<string, string> =
+    const data: Record<string, any> =
       typeof req.body === 'string'
         ? Object.fromEntries(new URLSearchParams(req.body))
         : req.body;
 
+    console.log('Incoming data keys:', Object.keys(data).join(', '));
+
     const lead = extractLead(data);
+
+    console.log('Extracted lead:', JSON.stringify({ email: lead.email, company: lead.companyName, score: lead.score }));
 
     if (!lead.email && !lead.companyName) {
       return res.status(400).json({ error: 'Geen email of bedrijfsnaam gevonden' });
@@ -342,9 +346,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let dealId: number | undefined;
 
+    // Pipedrive deal alleen bij hoge score
     if (lead.score >= SCORE_THRESHOLD) {
       const dealResult = await createPipedriveDeal(lead);
       dealId = dealResult.dealId;
+    }
+
+    // Email altijd sturen als er een emailadres is
+    if (lead.email) {
       await sendConfirmationEmail(lead);
     }
 

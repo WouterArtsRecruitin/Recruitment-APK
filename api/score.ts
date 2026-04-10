@@ -159,7 +159,7 @@ async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
 
   const resend = new Resend(RESEND_API_KEY);
   const { error } = await resend.emails.send({
-    from: 'Recruitment APK <noreply@kandidatentekort.nl>',
+    from: 'Recruitment APK <noreply@recruitmentapk.nl>',
     replyTo: 'info@recruitin.nl',
     to: lead.email,
     subject: `Uw Recruitment APK resultaat — ${lead.companyName}`,

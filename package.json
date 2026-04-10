@@ -26,8 +26,10 @@
     "web-vitals": "^3.5.0"
   },
   "devDependencies": {
+    "@types/node": "^25.5.2",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vercel/node": "^5.7.2",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",

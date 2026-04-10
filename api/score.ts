@@ -67,9 +67,11 @@ function calculateScore(data: Record<string, string>): number {
 }
 
 function extractField(data: Record<string, string>, keywords: string[]): string | undefined {
+  // Exacte key match
   for (const key of keywords) {
     if (data[key]) return data[key];
   }
+  // Partial match in keys (JotForm stuurt q2_bedrijfsnaam, q4_zakelijkE etc.)
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase();
     if (keywords.some(kw => lowerKey.includes(kw)) && value) {
@@ -79,17 +81,65 @@ function extractField(data: Record<string, string>, keywords: string[]): string 
   return undefined;
 }
 
-function extractLead(data: Record<string, string>): ScoredLead {
-  const score = calculateScore(data);
+function flattenJotFormData(data: Record<string, any>): Record<string, string> {
+  // JotForm stuurt nested objecten: q3_uwNaam[first], q5_telefoonnummer[full]
+  // Flatten naar platte key-value pairs + voeg herkenbare aliases toe
+  const flat: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'string') {
+      flat[key] = value;
+    } else if (typeof value === 'object' && value !== null) {
+      // Nested: {first: "Wouter", last: "Arts"} → combineer
+      if (value.first || value.last) {
+        flat[key] = `${value.first || ''} ${value.last || ''}`.trim();
+      } else if (value.full) {
+        flat[key] = value.full;
+      } else {
+        flat[key] = JSON.stringify(value);
+      }
+    }
+  }
+
+  // JotForm veldnaam mapping → herkenbare aliases
+  // q2_bedrijfsnaam → bedrijfsnaam, q4_zakelijkE → email, etc.
+  const aliases: Record<string, string[]> = {
+    bedrijfsnaam: ['q2_', 'bedrijf', 'company'],
+    email: ['q4_', 'zakelijk', 'emailadres', 'e-mail', 'e_mail'],
+    naam: ['q3_', 'uwNaam', 'contactpersoon'],
+    telefoon: ['q5_', 'telefoonnummer', 'phone'],
+    sector: ['q6_', 'welke.*sector', 'branche', 'industrie'],
+    regio: ['q7_', 'provincie', 'vestiging', 'locatie'],
+    teamgrootte: ['q8_', 'hoeveel.*technisch', 'team_size', 'fte'],
+    uitdaging: ['q12_', 'grootste.*uitdaging', 'challenge', 'probleem'],
+  };
+
+  for (const [alias, patterns] of Object.entries(aliases)) {
+    if (flat[alias]) continue; // Al gezet
+    for (const [key, value] of Object.entries(flat)) {
+      const lk = key.toLowerCase();
+      if (patterns.some(p => lk.includes(p.replace('.*', '')))) {
+        flat[alias] = value;
+        break;
+      }
+    }
+  }
+
+  return flat;
+}
+
+function extractLead(data: Record<string, any>): ScoredLead {
+  const flat = flattenJotFormData(data);
+  const score = calculateScore(flat);
   return {
-    email: extractField(data, ['email', 'e-mail', 'emailadres']) || '',
-    companyName: extractField(data, ['bedrijf', 'company', 'bedrijfsnaam', 'organisatie']) || '',
-    contactName: extractField(data, ['naam', 'name', 'contactpersoon']) || '',
-    phone: extractField(data, ['telefoon', 'phone', 'telefoonnummer']) || '',
-    sector: extractField(data, ['sector', 'branche', 'industrie']) || '',
-    teamSize: extractField(data, ['teamgrootte', 'team_size', 'fte']) || '',
+    email: extractField(flat, ['email', 'e-mail', 'emailadres', 'zakelijk']) || '',
+    companyName: extractField(flat, ['bedrijfsnaam', 'bedrijf', 'company', 'organisatie']) || '',
+    contactName: extractField(flat, ['naam', 'name', 'contactpersoon']) || '',
+    phone: extractField(flat, ['telefoon', 'phone', 'telefoonnummer']) || '',
+    sector: extractField(flat, ['sector', 'branche', 'industrie']) || '',
+    teamSize: extractField(flat, ['teamgrootte', 'team_size', 'fte']) || '',
     score,
-    answers: data,
+    answers: flat,
   };
 }
 

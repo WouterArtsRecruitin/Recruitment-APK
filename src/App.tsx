@@ -7,6 +7,7 @@ import { MetaPixel } from './components/MetaPixel';
 import { MicrosoftClarity } from './components/MicrosoftClarity';
 import { GoogleAdsRemarketing } from './components/GoogleAdsRemarketing';
 import { MetaCampaignPage } from './pages/MetaCampaignPage';
+import { ThankYou } from './components/ThankYou';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Assessment />} />
           <Route path="/meta" element={<MetaCampaignPage />} />
+          <Route path="/bedankt" element={<ThankYou />} />
         </Routes>
       </AnalyticsProvider>
     </BrowserRouter>

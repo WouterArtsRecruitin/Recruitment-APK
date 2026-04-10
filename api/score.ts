@@ -9,6 +9,7 @@ const PIPEDRIVE_API_TOKEN = process.env.PIPEDRIVE_API_TOKEN || '';
 const PIPEDRIVE_PIPELINE_ID = 14;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || '';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 // Score threshold: 60% van 100 = 60 punten → Path A (sales outreach)
 const SCORE_THRESHOLD = 60;
 const MAX_SCORE = 100; // 4 categorieën × 25 punten
@@ -304,6 +305,106 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 }
 
 // ============================================================================
+// CLAUDE ANALYSE — Gepersonaliseerde rapport insights
+// ============================================================================
+
+interface ClaudeAnalysis {
+  executive_summary: string;
+  category_insights: Record<string, { strengths: string; improvements: string; impact: string }>;
+  quick_wins: string[];
+  roi_estimate: string;
+}
+
+async function generateClaudeAnalysis(lead: ScoredLead): Promise<ClaudeAnalysis | null> {
+  if (!ANTHROPIC_API_KEY) {
+    console.log('No ANTHROPIC_API_KEY, skipping Claude analysis');
+    return null;
+  }
+
+  const catSummary = lead.categories.map(c => `${c.name}: ${c.score}/25 (${c.percent}%)`).join('\n');
+
+  const prompt = `Je bent een senior recruitment consultant bij Recruitin B.V. Genereer een professionele Nederlandse analyse voor dit bedrijf.
+
+BEDRIJFSDATA:
+Bedrijf: ${lead.companyName}
+Contact: ${lead.contactName}
+Sector: ${lead.sector}
+Totaalscore: ${lead.score}/100
+
+CATEGORIE SCORES:
+${catSummary}
+
+INSTRUCTIE: Genereer een JSON object met deze exacte structuur (geen markdown, alleen pure JSON):
+{
+  "executive_summary": "2-3 zinnen over de overall positie van dit bedrijf qua recruitment maturity. Noem de score, vergelijk met sectorgemiddelde, en benoem het belangrijkste verbeterpunt.",
+  "category_insights": {
+    "Processen": {
+      "strengths": "1-2 zinnen over wat goed gaat op basis van de score",
+      "improvements": "1-2 zinnen over het belangrijkste verbeterpunt",
+      "impact": "Verwachte impact bij verbetering (bijv. 'Doorlooptijd -30%, €X.000 besparing')"
+    },
+    "Technologie": {
+      "strengths": "...",
+      "improvements": "...",
+      "impact": "..."
+    },
+    "Talent Attraction": {
+      "strengths": "...",
+      "improvements": "...",
+      "impact": "..."
+    },
+    "Data & Analytics": {
+      "strengths": "...",
+      "improvements": "...",
+      "impact": "..."
+    }
+  },
+  "quick_wins": ["Concrete actie 1 (binnen 30 dagen)", "Concrete actie 2", "Concrete actie 3"],
+  "roi_estimate": "Geschatte jaarlijkse besparing bij implementatie van alle aanbevelingen, bijv. '€35.000 - €65.000'"
+}
+
+REGELS:
+- Schrijf in het Nederlands, professioneel maar direct
+- Maak het specifiek voor de sector "${lead.sector}"
+- Gebruik concrete cijfers en tijdslijnen
+- Geen vage adviezen, alleen actionable insights
+- Output ALLEEN het JSON object, geen tekst eromheen`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data?.content?.[0]?.text;
+
+    if (!text) {
+      console.error('Claude empty response:', JSON.stringify(data));
+      return null;
+    }
+
+    // Parse JSON — strip eventuele markdown code blocks
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const analysis = JSON.parse(jsonStr) as ClaudeAnalysis;
+    console.log('Claude analysis generated successfully');
+    return analysis;
+  } catch (error) {
+    console.error('Claude analysis error:', error);
+    return null;
+  }
+}
+
+// ============================================================================
 // RESEND EMAIL
 // ============================================================================
 
@@ -458,6 +559,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dealId = dealResult.dealId;
     }
 
+    // Claude analyse genereren (parallel met andere acties)
+    const claudePromise = generateClaudeAnalysis(lead);
+
     // Genereer rapport URL met score data + categorie scores
     const catScores = lead.categories.map(c => c.percent).join(',');
     const rapportParams = new URLSearchParams({
@@ -468,6 +572,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sector: lead.sector,
       cats: catScores,
     });
+
+    // Wacht op Claude analyse en voeg toe aan rapport URL
+    const analysis = await claudePromise;
+    if (analysis) {
+      rapportParams.set('ai', Buffer.from(JSON.stringify(analysis)).toString('base64'));
+    }
+
     const rapportUrl = `https://www.recruitmentapk.nl/rapport?${rapportParams.toString()}`;
 
     // Email altijd sturen als er een emailadres is

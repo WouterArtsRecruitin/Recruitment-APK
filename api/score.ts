@@ -152,26 +152,101 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 async function sendConfirmationEmail(lead: ScoredLead): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
 
+  // Score kleur bepalen
+  const scorePercent = Math.round((lead.score / 14) * 100);
+  const scoreColor = scorePercent >= 70 ? '#16a34a' : scorePercent >= 40 ? '#f59e0b' : '#ef4444';
+  const scoreLabel = scorePercent >= 70 ? 'GOED' : scorePercent >= 40 ? 'MATIG' : 'KRITIEK';
+
   const resend = new Resend(RESEND_API_KEY);
   const { error } = await resend.emails.send({
-    from: 'Recruitin <noreply@recruitin.nl>',
+    from: 'Recruitment APK <noreply@kandidatentekort.nl>',
+    replyTo: 'info@recruitin.nl',
     to: lead.email,
-    subject: 'Je Recruitment APK rapport is onderweg',
-    html: `
-      <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-        <h1 style="color: #09aedd; font-size: 24px;">Bedankt voor je Recruitment APK!</h1>
-        <p>Beste ${lead.contactName || 'HR-professional'},</p>
-        <p>We hebben je assessment ontvangen voor <strong>${lead.companyName}</strong>.</p>
-        <p>Ons team analyseert je antwoorden en je ontvangt binnen <strong>24 uur</strong> je persoonlijke APK-rapport inclusief verbeterplan.</p>
-        <hr style="border: 1px solid #eee; margin: 24px 0;" />
-        <p style="color: #666; font-size: 14px;">
-          Vragen? Reply op deze email of bel <a href="tel:+31313410507">+31 313 410 507</a>
-        </p>
-        <p style="color: #999; font-size: 12px;">— Team Recruitin</p>
-      </div>
-    `,
+    subject: `Uw Recruitment APK resultaat — ${lead.companyName}`,
+    html: `<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Recruitment APK Resultaat</title></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f9fafb;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;"><tr><td>
+<table width="600" cellpadding="0" cellspacing="0" align="center" style="background-color:white;font-size:14px;line-height:1.6;color:#1f2937;">
+
+<!-- HEADER -->
+<tr><td style="background-color:#05080c;padding:20px;text-align:center;">
+<span style="font-weight:bold;color:#09aedd;font-size:18px;letter-spacing:2px;">RECRUITMENT APK</span>
+<br><span style="color:#94a3b8;font-size:11px;letter-spacing:1px;">by Recruitin B.V.</span>
+</td></tr>
+
+<!-- HERO -->
+<tr><td style="background-color:#f3f4f6;padding:30px;border-bottom:1px solid #e5e7eb;">
+<div style="font-size:22px;font-weight:bold;color:#1f2937;">Uw assessment resultaat</div>
+<div style="font-size:14px;color:#6b7280;margin-top:8px;">${lead.companyName}${lead.sector ? ' — ' + lead.sector : ''}</div>
+</td></tr>
+
+<!-- SCORE -->
+<tr><td style="padding:30px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;">
+<tr><td style="padding:24px;text-align:center;">
+<table cellpadding="0" cellspacing="0" align="center">
+<tr><td style="width:80px;height:80px;border:3px solid ${scoreColor};border-radius:50%;text-align:center;font-size:28px;font-weight:bold;color:${scoreColor};line-height:80px;">${lead.score}/14</td></tr>
+</table>
+<div style="margin-top:12px;font-weight:bold;color:white;background-color:${scoreColor};padding:4px 14px;display:inline-block;border-radius:4px;font-size:12px;letter-spacing:1px;">${scoreLabel}</div>
+<div style="margin-top:12px;font-size:13px;color:#6b7280;">Recruitment Gereedheid Score</div>
+</td></tr>
+</table>
+</td></tr>
+
+<!-- BEVINDINGEN -->
+<tr><td style="padding:0 30px 30px;">
+<div style="font-weight:bold;font-size:16px;margin-bottom:15px;">Beoordeelde gebieden</div>
+<table width="100%" cellpadding="0" cellspacing="0">
+${[
+  { name: 'Teamgrootte & Schaal', ok: (parseInt(lead.teamSize) || 0) >= 50 },
+  { name: 'Sector Match', ok: ['oil','gas','constructie','bouw','productie','automation','renewables','energie','techniek'].some(s => (lead.sector || '').toLowerCase().includes(s)) },
+  { name: 'Regionale Positionering', ok: lead.score >= 8 },
+  { name: 'Employer Branding', ok: lead.email && !['gmail.com','hotmail.com','outlook.com'].some(p => lead.email.includes(p)) },
+  { name: 'Candidate Engagement', ok: (lead.phone || '').length >= 10 },
+].map(cat => `<tr><td style="padding:8px 12px;background-color:white;border:1px solid #e5e7eb;margin-bottom:6px;border-radius:4px;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr>
+<td width="24" style="font-size:16px;padding-right:8px;">${cat.ok ? '✓' : '⚠'}</td>
+<td><span style="font-weight:bold;color:#1f2937;font-size:13px;">${cat.name}</span></td>
+<td width="60" style="text-align:right;font-size:12px;color:${cat.ok ? '#16a34a' : '#f59e0b'};">${cat.ok ? 'Goed' : 'Aandacht'}</td>
+</tr></table></td></tr>`).join('')}
+</table>
+</td></tr>
+
+<!-- WAT NU -->
+<tr><td style="padding:0 30px 30px;border-top:1px solid #e5e7eb;">
+<div style="font-weight:bold;font-size:16px;margin:20px 0 15px;">Wat gebeurt er nu?</div>
+<table width="100%" cellpadding="0" cellspacing="0">
+${['Ons team analyseert uw antwoorden in detail', 'Binnen 24 uur ontvangt u het volledige APK-rapport', 'Inclusief concrete verbeterpunten en actieplan', 'Optioneel: gratis 30-min strategiegesprek'].map((item, i) => `<tr><td style="padding:6px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr>
+<td width="24" style="font-weight:bold;color:#09aedd;">${i + 1}.</td>
+<td style="padding-left:8px;color:#1f2937;font-size:13px;">${item}</td>
+</tr></table></td></tr>`).join('')}
+</table>
+</td></tr>
+
+<!-- CTA -->
+<tr><td style="padding:0 30px 20px;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#09aedd;padding:15px;text-align:center;border-radius:4px;">
+<a href="https://www.recruitin.nl" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Bekijk onze aanpak →</a>
+</td></tr></table>
+</td></tr>
+
+<!-- HELP -->
+<tr><td style="padding:20px 30px;background-color:#f3f4f6;border-top:1px solid #e5e7eb;">
+<div style="font-weight:bold;color:#1f2937;margin-bottom:6px;">Vragen?</div>
+<div style="color:#6b7280;font-size:13px;">Reply op deze email of bel <a href="tel:+31313410507" style="color:#09aedd;">+31 313 410 507</a></div>
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td style="padding:16px 30px;text-align:center;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:11px;">
+recruitmentapk.nl — powered by Recruitin B.V.
+</td></tr>
+
+</table></td></tr></table>
+</body></html>`,
   });
 
+  if (error) console.error('Resend error:', error);
   return !error;
 }
 

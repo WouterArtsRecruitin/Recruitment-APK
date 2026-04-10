@@ -277,7 +277,7 @@ ${['Ons team analyseert uw antwoorden in detail', 'Binnen 24 uur ontvangt u het 
 <!-- CTA -->
 <tr><td style="padding:0 30px 20px;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#09aedd;padding:15px;text-align:center;border-radius:4px;">
-<a href="https://www.recruitmentapk.nl" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Start jouw Recruitment APK →</a>
+<a href="https://www.recruitmentapk.nl/bedankt" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Plan een gratis strategiegesprek →</a>
 </td></tr></table>
 </td></tr>
 

@@ -13,6 +13,7 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 // Score threshold: 60% van 100 = 60 punten → Path A (sales outreach)
 const SCORE_THRESHOLD = 60;
 const MAX_SCORE = 100; // 4 categorieën × 25 punten
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 
 // ============================================================================
 // TYPES
@@ -259,47 +260,55 @@ function extractLead(data: Record<string, any>): ScoredLead {
 async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean; dealId?: number }> {
   if (!PIPEDRIVE_API_TOKEN) return { success: false };
 
-  const orgRes = await fetch(
-    `https://api.pipedrive.com/v1/organizations?api_token=${PIPEDRIVE_API_TOKEN}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: lead.companyName }),
-    }
-  );
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${PIPEDRIVE_API_TOKEN}`,
+  };
+
+  const orgRes = await fetch('https://api.pipedrive.com/v1/organizations', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ name: lead.companyName }),
+  });
+  if (!orgRes.ok) {
+    console.error('Pipedrive org creation failed:', orgRes.status);
+    return { success: false };
+  }
   const orgData = await orgRes.json();
   const orgId = orgData?.data?.id;
 
-  const personRes = await fetch(
-    `https://api.pipedrive.com/v1/persons?api_token=${PIPEDRIVE_API_TOKEN}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: lead.contactName || lead.companyName,
-        email: [{ value: lead.email, primary: true }],
-        phone: lead.phone ? [{ value: lead.phone, primary: true }] : [],
-        org_id: orgId,
-      }),
-    }
-  );
+  const personRes = await fetch('https://api.pipedrive.com/v1/persons', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      name: lead.contactName || lead.companyName,
+      email: [{ value: lead.email, primary: true }],
+      phone: lead.phone ? [{ value: lead.phone, primary: true }] : [],
+      org_id: orgId,
+    }),
+  });
+  if (!personRes.ok) {
+    console.error('Pipedrive person creation failed:', personRes.status);
+    return { success: false };
+  }
   const personData = await personRes.json();
   const personId = personData?.data?.id;
 
-  const dealRes = await fetch(
-    `https://api.pipedrive.com/v1/deals?api_token=${PIPEDRIVE_API_TOKEN}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: `APK — ${lead.companyName}`,
-        person_id: personId,
-        org_id: orgId,
-        pipeline_id: PIPEDRIVE_PIPELINE_ID,
-        status: 'open',
-      }),
-    }
-  );
+  const dealRes = await fetch('https://api.pipedrive.com/v1/deals', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      title: `APK — ${lead.companyName}`,
+      person_id: personId,
+      org_id: orgId,
+      pipeline_id: PIPEDRIVE_PIPELINE_ID,
+      status: 'open',
+    }),
+  });
+  if (!dealRes.ok) {
+    console.error('Pipedrive deal creation failed:', dealRes.status);
+    return { success: false };
+  }
   const dealData = await dealRes.json();
   return { success: dealData?.success, dealId: dealData?.data?.id };
 }
@@ -405,6 +414,30 @@ REGELS:
 }
 
 // ============================================================================
+// HELPERS
+// ============================================================================
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function verifyWebhookSecret(req: VercelRequest): boolean {
+  if (!WEBHOOK_SECRET) {
+    console.warn('WEBHOOK_SECRET not configured — endpoint is unauthenticated');
+    return true;
+  }
+  const tokenParam = req.query?.token as string | undefined;
+  if (tokenParam === WEBHOOK_SECRET) return true;
+  const headerToken = req.headers['x-webhook-secret'] as string | undefined;
+  return headerToken === WEBHOOK_SECRET;
+}
+
+// ============================================================================
 // RESEND EMAIL
 // ============================================================================
 
@@ -418,7 +451,7 @@ async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Prom
 
   const resend = new Resend(RESEND_API_KEY);
   const { error } = await resend.emails.send({
-    from: 'Recruitment APK <noreply@kandidatentekort.nl>',
+    from: 'Recruitment APK <noreply@recruitmentapk.nl>',
     replyTo: 'info@recruitin.nl',
     to: lead.email,
     subject: `Uw Recruitment APK resultaat — ${lead.companyName}`,
@@ -437,7 +470,7 @@ async function sendConfirmationEmail(lead: ScoredLead, rapportUrl: string): Prom
 <!-- HERO -->
 <tr><td style="background-color:#f3f4f6;padding:30px;border-bottom:1px solid #e5e7eb;">
 <div style="font-size:22px;font-weight:bold;color:#1f2937;">Uw assessment resultaat</div>
-<div style="font-size:14px;color:#6b7280;margin-top:8px;">${lead.companyName}${lead.sector ? ' — ' + lead.sector : ''}</div>
+<div style="font-size:14px;color:#6b7280;margin-top:8px;">${escapeHtml(lead.companyName)}${lead.sector ? ' — ' + escapeHtml(lead.sector) : ''}</div>
 </td></tr>
 
 <!-- SCORE -->
@@ -535,6 +568,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!verifyWebhookSecret(req)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     const data: Record<string, any> =
       typeof req.body === 'string'
@@ -545,7 +582,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const lead = extractLead(data);
 
-    console.log('Extracted lead:', JSON.stringify({ email: lead.email, company: lead.companyName, score: lead.score }));
+    console.log('Extracted lead:', JSON.stringify({ company: lead.companyName, score: lead.score }));
 
     if (!lead.email && !lead.companyName) {
       return res.status(400).json({ error: 'Geen email of bedrijfsnaam gevonden' });

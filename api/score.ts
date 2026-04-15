@@ -139,18 +139,21 @@ function calculateCategoryScores(data: Record<string, string>): CategoryScore[] 
 
   console.log(`Found ${Object.keys(questionAnswers).length} assessment answers`);
 
-  return Object.entries(CATEGORY_QUESTIONS).map(([name, questions]) => {
+  // Individuele vraagscores opslaan
+  const individualScores: Record<number, number> = {};
+  for (let q = 1; q <= 29; q++) {
+    const answer = questionAnswers[q];
+    individualScores[q] = answer ? scoreAnswer(answer) : 0;
+  }
+
+  const categories = Object.entries(CATEGORY_QUESTIONS).map(([name, questions]) => {
     let rawScore = 0;
     const maxRaw = questions.length * 10;
 
     for (const qNum of questions) {
-      const answer = questionAnswers[qNum];
-      if (answer) {
-        rawScore += scoreAnswer(answer);
-      }
+      rawScore += individualScores[qNum] || 0;
     }
 
-    // Schaal naar 0-25
     const scaledScore = maxRaw > 0 ? Math.round((rawScore / maxRaw) * 25) : 0;
     const percent = maxRaw > 0 ? Math.round((rawScore / maxRaw) * 100) : 0;
 
@@ -162,6 +165,8 @@ function calculateCategoryScores(data: Record<string, string>): CategoryScore[] 
       questionCount: questions.length,
     };
   });
+
+  return { categories, individualScores };
 }
 
 function calculateTotalScore(categories: CategoryScore[]): number {
@@ -230,9 +235,9 @@ function flattenJotFormData(data: Record<string, any>): Record<string, string> {
   return flat;
 }
 
-function extractLead(data: Record<string, any>): ScoredLead {
+function extractLead(data: Record<string, any>): ScoredLead & { individualScores: Record<number, number> } {
   const flat = flattenJotFormData(data);
-  const categories = calculateCategoryScores(flat);
+  const { categories, individualScores } = calculateCategoryScores(flat);
   const score = calculateTotalScore(categories);
   const scorePercent = Math.round((score / MAX_SCORE) * 100);
 
@@ -249,6 +254,7 @@ function extractLead(data: Record<string, any>): ScoredLead {
     score,
     scorePercent,
     categories,
+    individualScores,
     answers: flat,
   };
 }
@@ -260,12 +266,11 @@ function extractLead(data: Record<string, any>): ScoredLead {
 async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean; dealId?: number }> {
   if (!PIPEDRIVE_API_TOKEN) return { success: false };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${PIPEDRIVE_API_TOKEN}`,
-  };
+  // Pipedrive personal API tokens require api_token query param (not Bearer header)
+  const pd = (path: string) => `https://api.pipedrive.com/v1/${path}?api_token=${PIPEDRIVE_API_TOKEN}`;
+  const headers = { 'Content-Type': 'application/json' };
 
-  const orgRes = await fetch('https://api.pipedrive.com/v1/organizations', {
+  const orgRes = await fetch(pd('organizations'), {
     method: 'POST',
     headers,
     body: JSON.stringify({ name: lead.companyName }),
@@ -277,7 +282,7 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
   const orgData = await orgRes.json();
   const orgId = orgData?.data?.id;
 
-  const personRes = await fetch('https://api.pipedrive.com/v1/persons', {
+  const personRes = await fetch(pd('persons'), {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -294,7 +299,7 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
   const personData = await personRes.json();
   const personId = personData?.data?.id;
 
-  const dealRes = await fetch('https://api.pipedrive.com/v1/deals', {
+  const dealRes = await fetch(pd('deals'), {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -320,8 +325,16 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
 interface ClaudeAnalysis {
   executive_summary: string;
   category_insights: Record<string, { strengths: string; improvements: string; impact: string }>;
-  quick_wins: string[];
+  quick_wins?: string[];
   roi_estimate: string;
+  top_strengths: string[];
+  weakest_points: string[];
+  action_plan_30: string[];
+  action_plan_60: string[];
+  action_plan_90: string[];
+  roi_explanation?: string;
+  biggest_opportunity: string;
+  opportunity_hook: string;
 }
 
 async function generateClaudeAnalysis(lead: ScoredLead): Promise<ClaudeAnalysis | null> {
@@ -343,40 +356,35 @@ Totaalscore: ${lead.score}/100
 CATEGORIE SCORES:
 ${catSummary}
 
-INSTRUCTIE: Genereer een JSON object met deze exacte structuur (geen markdown, alleen pure JSON):
+INSTRUCTIE: Genereer een uitgebreid JSON object. Dit rapport wordt getoond na het invullen van 29 assessment vragen — de gebruiker verwacht diepgang en waarde. Gebruik deze exacte structuur (geen markdown, alleen pure JSON):
 {
-  "executive_summary": "2-3 zinnen over de overall positie van dit bedrijf qua recruitment maturity. Noem de score, vergelijk met sectorgemiddelde, en benoem het belangrijkste verbeterpunt.",
+  "executive_summary": "3-4 zinnen. Positioneer het bedrijf qua recruitment maturity, vergelijk met sectorgemiddelde, benoem de sterkste en zwakste categorie, en geef de #1 strategische prioriteit.",
   "category_insights": {
     "Processen": {
-      "strengths": "1-2 zinnen over wat goed gaat op basis van de score",
-      "improvements": "1-2 zinnen over het belangrijkste verbeterpunt",
-      "impact": "Verwachte impact bij verbetering (bijv. 'Doorlooptijd -30%, €X.000 besparing')"
+      "strengths": "2-3 zinnen over wat goed gaat. Wees specifiek over welke processen sterk zijn en waarom dit waardevol is voor het bedrijf in deze sector.",
+      "improvements": "2-3 zinnen over concrete verbeterpunten. Noem specifieke tools, methoden of frameworks die het bedrijf kan implementeren.",
+      "impact": "Verwachte impact bij verbetering met concrete cijfers, bijv. 'Doorlooptijd -30%, €25.000 besparing/jaar, 2 FTE minder extern bureau'"
     },
-    "Technologie": {
-      "strengths": "...",
-      "improvements": "...",
-      "impact": "..."
-    },
-    "Talent Attraction": {
-      "strengths": "...",
-      "improvements": "...",
-      "impact": "..."
-    },
-    "Data & Analytics": {
-      "strengths": "...",
-      "improvements": "...",
-      "impact": "..."
-    }
+    "Technologie": { "strengths": "2-3 zinnen...", "improvements": "2-3 zinnen...", "impact": "..." },
+    "Talent Attraction": { "strengths": "2-3 zinnen...", "improvements": "2-3 zinnen...", "impact": "..." },
+    "Data & Analytics": { "strengths": "2-3 zinnen...", "improvements": "2-3 zinnen...", "impact": "..." }
   },
-  "quick_wins": ["Concrete actie 1 (binnen 30 dagen)", "Concrete actie 2", "Concrete actie 3"],
-  "roi_estimate": "Geschatte jaarlijkse besparing bij implementatie van alle aanbevelingen, bijv. '€35.000 - €65.000'"
+  "top_strengths": ["Sterkste punt met korte toelichting (max 15 woorden)", "Tweede sterkste punt (max 15 woorden)", "Derde sterkste punt (max 15 woorden)"],
+  "weakest_points": ["Zwakste punt met korte toelichting (max 15 woorden)", "Tweede zwakste punt (max 15 woorden)", "Derde zwakste punt (max 15 woorden)"],
+  "action_plan_30": ["Concrete actie 1 met verwacht resultaat (2 zinnen)", "Actie 2 met verwacht resultaat (2 zinnen)", "Actie 3 met verwacht resultaat (2 zinnen)"],
+  "action_plan_60": ["Actie 1 dag 30-60, bouwt voort op fase 1 (2 zinnen)", "Actie 2 dag 30-60 (2 zinnen)", "Actie 3 (2 zinnen)"],
+  "action_plan_90": ["Actie 1 dag 60-90, meten en optimaliseren (2 zinnen)", "Actie 2 dag 60-90 (2 zinnen)"],
+  "roi_estimate": "ALLEEN het bedrag, bijv. '€35.000 - €65.000' — max 20 tekens",
+  "biggest_opportunity": "De naam van de zwakste categorie (exact: Processen, Technologie, Talent Attraction, of Data & Analytics)",
+  "opportunity_hook": "1 prikkelende, confronterende zin die het bedrijf laat voelen wat ze mislopen. Gebruik een concreet bedrag of tijdverspilling, bijv. 'Jullie verliezen maandelijks €8.000 aan inefficiënte werving terwijl concurrenten al geautomatiseerd werven'"
 }
 
 REGELS:
-- Schrijf in het Nederlands, professioneel maar direct
-- Maak het specifiek voor de sector "${lead.sector}"
-- Gebruik concrete cijfers en tijdslijnen
-- Geen vage adviezen, alleen actionable insights
+- Nederlands, professioneel maar direct en confronterend waar nodig
+- Specifiek voor de sector "${lead.sector}" en het bedrijf "${lead.companyName}"
+- Gebruik concrete cijfers, tijdslijnen, tools en methoden — noem specifieke software, frameworks, KPIs
+- Het actieplan moet logisch opbouwen: 30d = quick wins, 60d = structureel, 90d = meten
+- Elke categorie-insight moet genoeg diepgang hebben om waardevol te voelen na 29 vragen
 - Output ALLEEN het JSON object, geen tekst eromheen`;
 
   try {
@@ -389,7 +397,7 @@ REGELS:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -426,11 +434,58 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+/** Strip control characters and trim. Safe for Pipedrive/external API fields. */
+function sanitizeString(str: string): string {
+  // Remove control chars (except newline/tab), trim, collapse whitespace
+  return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+}
+
+const MAX_BODY_SIZE = 10 * 1024; // 10 KB
+
+// ============================================================================
+// RATE LIMITING (Supabase-backed)
+// ============================================================================
+
+async function checkRateLimit(req: VercelRequest): Promise<boolean> {
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_KEY) return true; // fail-open if not configured
+
+  // Hash IP for privacy
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 'unknown';
+  const encoder = new TextEncoder();
+  const data = encoder.encode(ip + 'apk-salt-2026');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const ipHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxRequests = 5; // max 5 per hour per IP
+  const since = new Date(Date.now() - windowMs).toISOString();
+
+  // Count recent requests
+  const countRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/apk_rate_limits?ip_hash=eq.${ipHash}&created_at=gte.${since}&select=id`,
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+  );
+  const recent = await countRes.json();
+  if (Array.isArray(recent) && recent.length >= maxRequests) return false;
+
+  // Log this request
+  await fetch(`${SUPABASE_URL}/rest/v1/apk_rate_limits`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ip_hash: ipHash })
+  });
+
+  return true;
+}
+
 function verifyWebhookSecret(req: VercelRequest): boolean {
   if (!WEBHOOK_SECRET) {
     console.warn('WEBHOOK_SECRET not configured — endpoint is unauthenticated');
     return true;
   }
+  // Verify via shared secret only — no Origin-based bypasses
   const tokenParam = req.query?.token as string | undefined;
   if (tokenParam === WEBHOOK_SECRET) return true;
   const headerToken = req.headers['x-webhook-secret'] as string | undefined;
@@ -503,28 +558,30 @@ ${lead.categories.map(cat => {
 </table>
 </td></tr>
 
-<!-- WAT NU -->
-<tr><td style="padding:0 30px 30px;border-top:1px solid #e5e7eb;">
-<div style="font-weight:bold;font-size:16px;margin:20px 0 15px;">Wat gebeurt er nu?</div>
-<table width="100%" cellpadding="0" cellspacing="0">
-${['Ons team analyseert uw antwoorden in detail', 'Binnen 24 uur ontvangt u het volledige APK-rapport', 'Inclusief concrete verbeterpunten en actieplan', 'Optioneel: gratis 30-min strategiegesprek'].map((item, i) => `<tr><td style="padding:6px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr>
-<td width="24" style="font-weight:bold;color:#09aedd;">${i + 1}.</td>
-<td style="padding-left:8px;color:#1f2937;font-size:13px;">${item}</td>
-</tr></table></td></tr>`).join('')}
-</table>
+<!-- CTA PRIMAIR -->
+<tr><td style="padding:24px 30px 8px;text-align:center;">
+<div style="font-weight:bold;font-size:18px;color:#1f2937;margin-bottom:8px;">Jouw persoonlijke rapport staat klaar</div>
+<div style="font-size:14px;color:#6b7280;margin-bottom:20px;">Bekijk jouw volledige recruitment maturity analyse inclusief AI-insights, benchmark en actieplan</div>
+<table cellpadding="0" cellspacing="0" align="center"><tr><td style="background-color:#09aedd;border-radius:6px;padding:16px 32px;">
+<a href="${rapportUrl}" style="color:#05080c;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:0.02em;">Bekijk volledig rapport →</a>
+</td></tr></table>
+<div style="margin-top:12px;font-size:11px;color:#9ca3af;">Klik op de knop of kopieer: recruitmentapk.nl/rapport</div>
 </td></tr>
 
-<!-- CTA -->
-<tr><td style="padding:0 30px 20px;">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#09aedd;padding:15px;text-align:center;border-radius:4px;">
-<a href="${rapportUrl}" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Bekijk volledig rapport →</a>
-</td></tr></table>
+<!-- DIVIDER -->
+<tr><td style="padding:0 30px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
+
+<!-- WHATSAPP CTA -->
+<tr><td style="padding:20px 30px;text-align:center;">
+<div style="font-size:13px;color:#6b7280;margin-bottom:12px;">Directe vraag over jouw score?</div>
+<a href="https://wa.me/31614314593" style="display:inline-flex;align-items:center;gap:8px;background-color:#25D366;color:white;text-decoration:none;font-weight:bold;font-size:13px;padding:10px 20px;border-radius:20px;">
+&#x1F4AC; Stuur een WhatsApp bericht
+</a>
 </td></tr>
 
 <!-- HELP -->
-<tr><td style="padding:20px 30px;background-color:#f3f4f6;border-top:1px solid #e5e7eb;">
-<div style="font-weight:bold;color:#1f2937;margin-bottom:6px;">Vragen?</div>
-<div style="color:#6b7280;font-size:13px;">Reply op deze email of bel <a href="tel:+31313410507" style="color:#09aedd;">+31 313 410 507</a></div>
+<tr><td style="padding:16px 30px;background-color:#f3f4f6;border-top:1px solid #e5e7eb;">
+<div style="color:#6b7280;font-size:12px;text-align:center;">Wouter Arts · <a href="mailto:warts@recruitin.nl" style="color:#09aedd;">warts@recruitin.nl</a> · +31 6 14 31 45 93</div>
 </td></tr>
 
 <!-- FOOTER -->
@@ -572,7 +629,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // Server-side rate limiting
+  const allowed = await checkRateLimit(req);
+  if (!allowed) {
+    return res.status(429).json({ error: 'Te veel verzoeken. Probeer het later opnieuw.' });
+  }
+
   try {
+    // --- Input validation: reject oversized bodies ---
+    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? '');
+    if (Buffer.byteLength(rawBody, 'utf-8') > MAX_BODY_SIZE) {
+      return res.status(413).json({ error: 'Request body te groot (max 10 KB)' });
+    }
+
     const data: Record<string, any> =
       typeof req.body === 'string'
         ? Object.fromEntries(new URLSearchParams(req.body))
@@ -582,10 +651,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const lead = extractLead(data);
 
+    // --- Sanitize free-text fields before external API calls ---
+    lead.contactName = sanitizeString(lead.contactName);
+    lead.phone = sanitizeString(lead.phone);
+    lead.companyName = sanitizeString(lead.companyName);
+    lead.sector = sanitizeString(lead.sector);
+
     console.log('Extracted lead:', JSON.stringify({ company: lead.companyName, score: lead.score }));
 
-    if (!lead.email && !lead.companyName) {
-      return res.status(400).json({ error: 'Geen email of bedrijfsnaam gevonden' });
+    // --- Required field validation ---
+    if (!lead.companyName || lead.companyName.length > 200) {
+      return res.status(400).json({ error: 'Bedrijfsnaam is verplicht (max 200 tekens)' });
+    }
+    if (!lead.email || !lead.email.includes('@')) {
+      return res.status(400).json({ error: 'Geldig e-mailadres is verplicht' });
     }
 
     let dealId: number | undefined;
@@ -599,8 +678,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Claude analyse genereren (parallel met andere acties)
     const claudePromise = generateClaudeAnalysis(lead);
 
-    // Genereer rapport URL met score data + categorie scores
+    // Genereer rapport URL met score data + categorie scores + individuele scores
     const catScores = lead.categories.map(c => c.percent).join(',');
+    const qScores = Array.from({ length: 29 }, (_, i) => lead.individualScores[i + 1] || 0).join(',');
     const rapportParams = new URLSearchParams({
       score: lead.score.toString(),
       max: MAX_SCORE.toString(),
@@ -608,6 +688,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       contact: lead.contactName,
       sector: lead.sector,
       cats: catScores,
+      qs: qScores,
     });
 
     // Wacht op Claude analyse en voeg toe aan rapport URL
@@ -618,9 +699,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const rapportUrl = `https://www.recruitmentapk.nl/rapport?${rapportParams.toString()}`;
 
+    // Email CTA URL met UTM tracking (GA4 meet doorklikken vanuit email)
+    const emailRapportUrl = `${rapportUrl}&utm_source=email&utm_medium=transactional&utm_campaign=apk-rapport&utm_content=cta-button`;
+
     // Email altijd sturen als er een emailadres is
     if (lead.email) {
-      await sendConfirmationEmail(lead, rapportUrl);
+      await sendConfirmationEmail(lead, emailRapportUrl);
     }
 
     await sendSlackNotification(lead, dealId);
@@ -629,6 +713,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true,
       score: lead.score,
       path: lead.score >= SCORE_THRESHOLD ? 'A' : 'B',
+      rapportUrl,
     });
   } catch (error) {
     console.error('Score handler error:', error);

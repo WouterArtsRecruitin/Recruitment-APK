@@ -442,6 +442,25 @@ function sanitizeString(str: string): string {
 
 const MAX_BODY_SIZE = 10 * 1024; // 10 KB
 
+/** Legacy: build rapport URL with all data in query params (fallback when Supabase unavailable) */
+function buildLegacyRapportUrl(lead: ScoredLead & { individualScores: Record<number, number> }, analysis: ClaudeAnalysis | null): string {
+  const catScores = lead.categories.map(c => c.percent).join(',');
+  const qScores = Array.from({ length: 29 }, (_, i) => lead.individualScores[i + 1] || 0).join(',');
+  const params = new URLSearchParams({
+    score: lead.score.toString(),
+    max: MAX_SCORE.toString(),
+    company: lead.companyName,
+    contact: lead.contactName,
+    sector: lead.sector,
+    cats: catScores,
+    qs: qScores,
+  });
+  if (analysis) {
+    params.set('ai', Buffer.from(JSON.stringify(analysis)).toString('base64'));
+  }
+  return `https://www.recruitmentapk.nl/rapport?${params.toString()}`;
+}
+
 // ============================================================================
 // RATE LIMITING (Supabase-backed)
 // ============================================================================
@@ -678,26 +697,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Claude analyse genereren (parallel met andere acties)
     const claudePromise = generateClaudeAnalysis(lead);
 
-    // Genereer rapport URL met score data + categorie scores + individuele scores
-    const catScores = lead.categories.map(c => c.percent).join(',');
-    const qScores = Array.from({ length: 29 }, (_, i) => lead.individualScores[i + 1] || 0).join(',');
-    const rapportParams = new URLSearchParams({
-      score: lead.score.toString(),
-      max: MAX_SCORE.toString(),
-      company: lead.companyName,
-      contact: lead.contactName,
-      sector: lead.sector,
-      cats: catScores,
-      qs: qScores,
-    });
-
-    // Wacht op Claude analyse en voeg toe aan rapport URL
+    // Wacht op Claude analyse
     const analysis = await claudePromise;
-    if (analysis) {
-      rapportParams.set('ai', Buffer.from(JSON.stringify(analysis)).toString('base64'));
-    }
 
-    const rapportUrl = `https://www.recruitmentapk.nl/rapport?${rapportParams.toString()}`;
+    // Store rapport data in Supabase — returns UUID for clean URL
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+    let rapportUrl: string;
+
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/apk_rapports`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          company_name: lead.companyName,
+          contact_name: lead.contactName,
+          email: lead.email,
+          sector: lead.sector,
+          score: lead.score,
+          max_score: MAX_SCORE,
+          score_percent: lead.scorePercent,
+          category_scores: lead.categories,
+          individual_scores: lead.individualScores,
+          ai_analysis: analysis,
+        }),
+      });
+
+      if (insertRes.ok) {
+        const [row] = await insertRes.json();
+        rapportUrl = `https://www.recruitmentapk.nl/rapport?id=${row.id}`;
+        console.log(`Rapport stored in Supabase: ${row.id}`);
+      } else {
+        console.error('Supabase insert failed:', await insertRes.text());
+        // Fallback to old URL params
+        rapportUrl = buildLegacyRapportUrl(lead, analysis);
+      }
+    } else {
+      // No Supabase configured — use legacy URL params
+      rapportUrl = buildLegacyRapportUrl(lead, analysis);
+    }
 
     // Email CTA URL met UTM tracking (GA4 meet doorklikken vanuit email)
     const emailRapportUrl = `${rapportUrl}&utm_source=email&utm_medium=transactional&utm_campaign=apk-rapport&utm_content=cta-button`;

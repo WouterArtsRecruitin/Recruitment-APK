@@ -46,3 +46,4 @@ config.js
 .env
 *.key
 *.pem
+.netlify/

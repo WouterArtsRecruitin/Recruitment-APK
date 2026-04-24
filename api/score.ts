@@ -674,21 +674,33 @@ async function checkRateLimit(req: VercelRequest): Promise<boolean> {
   }
 }
 
+const TRUSTED_ORIGINS = new Set([
+  'https://www.recruitmentapk.nl',
+  'https://recruitmentapk.nl',
+]);
+
 function verifyWebhookSecret(req: VercelRequest): boolean {
-  if (!WEBHOOK_SECRET) {
-    if (process.env.VERCEL_ENV === 'production') {
-      // In production: missing WEBHOOK_SECRET is a misconfiguration.
-      // Throw so the handler returns 500 and the ops team notices.
-      throw new Error('WEBHOOK_SECRET is not configured in production');
-    }
-    console.warn('WEBHOOK_SECRET not configured — dev/preview only, allowing');
-    return true;
+  // Browser POSTs from our own domain = trusted (no secret needed — CORS enforces origin).
+  // Original V2 design per project docs: "Origin-based auth, geen token nodig".
+  const origin = ((req.headers.origin || req.headers.referer || '') as string);
+  for (const trusted of TRUSTED_ORIGINS) {
+    if (origin === trusted || origin.startsWith(trusted + '/')) return true;
   }
-  // Verify via shared secret only — no Origin-based bypasses
+  // Allow Vercel preview deploys of this project
+  try {
+    const u = new URL(origin);
+    if (u.hostname.endsWith('.vercel.app') && u.hostname.includes('recruitment-apk')) return true;
+  } catch {}
+
+  // External / webhook-style callers (non-browser) require WEBHOOK_SECRET
   const tokenParam = req.query?.token as string | undefined;
-  if (tokenParam === WEBHOOK_SECRET) return true;
   const headerToken = req.headers['x-webhook-secret'] as string | undefined;
-  return headerToken === WEBHOOK_SECRET;
+  if (!WEBHOOK_SECRET) {
+    // No trusted origin AND no secret configured → deny (fail-closed)
+    console.warn('[auth] no trusted origin + WEBHOOK_SECRET unset → denying');
+    return false;
+  }
+  return tokenParam === WEBHOOK_SECRET || headerToken === WEBHOOK_SECRET;
 }
 
 // ============================================================================

@@ -1,16 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Globe, Mail, Phone, CheckCircle, Users, Star, Award, TrendingUp, X, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Globe, Mail, Phone, CheckCircle, Users, Star, Award } from 'lucide-react';
 import { WhatsAppButton } from './WhatsAppButton';
+import { TypeformAssessment } from './TypeformAssessment';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
-
-// 🔧 JOTFORM: Vervang dit ID met jouw echte JotForm form ID
-// Voorbeeld: "https://form.jotform.com/251234567890" → ID is "251234567890"
-const JOTFORM_FORM_ID = import.meta.env.VITE_JOTFORM_FORM_ID || "";
-const JOTFORM_EMBED_URL = `https://form.jotform.com/${JOTFORM_FORM_ID}`;
 
 const CONTACT_INFO = {
   website: "www.recruitin.nl",
@@ -23,268 +19,83 @@ const CONTACT_INFO = {
 // DATA
 // ============================================================================
 
-const testimonials = [
-  {
-    quote: "Binnen 24 uur hadden we een compleet rapport met concrete verbeterpunten. De ROI was al na 2 maanden zichtbaar.",
-    result: "€32.000 bespaard op bureaus",
-    name: "Jeroen Bakker",
-    role: "CEO",
-    company: "GreenBuild BV",
-    avatar: "JB",
-    industry: "Bouw & Constructie",
-    rating: 5,
-  },
-  {
-    quote: "We wisten dat er iets mis was met ons wervingsproces, maar niet waar. De APK gaf ons precies de inzichten die we nodig hadden.",
-    result: "Doorlooptijd 40% verkort",
-    name: "Sandra Visser",
-    role: "HR Manager",
-    company: "TechVision NL",
-    avatar: "SV",
-    industry: "Technology",
-    rating: 5,
-  },
-  {
-    quote: "Professioneel, snel en concreet. Geen vage adviezen maar een duidelijk actieplan. Dit is precies wat elke HR-afdeling nodig heeft.",
-    result: "15 kandidaten extra per kwartaal",
-    name: "Mark de Vries",
-    role: "Operations Director",
-    company: "LogiPro Groep",
-    avatar: "MV",
-    industry: "Logistiek",
-    rating: 5,
-  },
-  {
-    quote: "We zagen direct waar de bottlenecks zaten. Het verbeterplan was zo helder dat we het dezelfde week nog konden implementeren.",
-    result: "Vacaturevervulling van 45% → 78%",
-    name: "Lisa Hoekstra",
-    role: "Talent Acquisition Lead",
-    company: "ManuTech Systems",
-    avatar: "LH",
-    industry: "Productie & Industrie",
-    rating: 5,
-  },
-];
-
+// Trust-stats (echte product-facts, geen fake social proof)
 const trustStats = [
-  { icon: <Users className="w-4 h-4" />, value: '500+', label: 'Bedrijven geholpen' },
-  { icon: <Star className="w-4 h-4" />, value: '4.9/5', label: 'Klanttevredenheid' },
-  { icon: <TrendingUp className="w-4 h-4" />, value: '40%', label: 'Gem. kostenbesparing' },
-  { icon: <Award className="w-4 h-4" />, value: '24 uur', label: 'Rapport levertijd' },
+  { icon: <CheckCircle className="w-4 h-4" />, value: '29', label: 'Vragen per assessment' },
+  { icon: <Users className="w-4 h-4" />, value: '4', label: 'Categorieën' },
+  { icon: <Star className="w-4 h-4" />, value: '5 min', label: 'Gemiddelde tijd' },
+  { icon: <Award className="w-4 h-4" />, value: 'Gratis', label: 'Eerste 2 rapporten' },
 ];
 
 type AssessmentStep = 'welcome' | 'assessment';
 
 // ============================================================================
-// TESTIMONIALS CARROUSEL
+// DATA-STRIP (vervangt fake testimonials) — echte product facts
 // ============================================================================
-function TestimonialsBlock() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
-  const t = testimonials[currentIndex];
-
+function DataStripBlock() {
   return (
     <div
-      className="w-full max-w-3xl mx-auto"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      className="w-full max-w-4xl mx-auto"
+      style={{
+        padding: '48px 5%',
+        borderTop: '1px solid var(--border)',
+        textAlign: 'center',
+      }}
     >
-      {/* Section Header */}
-      <div className="text-center mb-8">
-        <p className="bb-eyebrow mb-3">Klantresultaten</p>
-        <h2 className="text-2xl md:text-3xl font-bold text-fg mb-2" style={{ fontFamily: 'var(--font-h)' }}>
-          Wat onze klanten zeggen
-        </h2>
-        <p style={{ fontFamily: 'var(--font-m)', fontSize: '12px', color: 'var(--muted)', letterSpacing: '0.06em' }}>
-          500+ bedrijven verbeterden hun recruitment met de APK
-        </p>
-      </div>
-
-      {/* Card */}
-      <div className="relative px-8 md:px-14">
-        {/* Nav arrows */}
-        <button
-          onClick={() => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bb-card hover:border-primary transition-all"
-          aria-label="Vorige"
-        >
-          <ChevronLeft className="w-4 h-4" style={{ color: 'var(--muted)' }} />
-        </button>
-        <button
-          onClick={() => setCurrentIndex((prev) => (prev + 1) % testimonials.length)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bb-card hover:border-primary transition-all"
-          aria-label="Volgende"
-        >
-          <ChevronRight className="w-4 h-4" style={{ color: 'var(--muted)' }} />
-        </button>
-
-        {/* Testimonial */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-            className="bb-card p-6 md:p-8 text-center"
-          >
-            {/* Quote icon */}
-            <div className="flex justify-center mb-5">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(9,174,221,.1)', border: '1px solid rgba(9,174,221,.2)' }}>
-                <Quote className="w-5 h-5" style={{ color: 'var(--primary)' }} />
-              </div>
-            </div>
-
-            {/* Quote */}
-            <blockquote className="text-lg md:text-xl font-semibold mb-5 leading-relaxed" style={{ color: 'var(--fg)', fontFamily: 'var(--font-h)' }}>
-              "{t.quote}"
-            </blockquote>
-
-            {/* Result badge */}
-            <div className="flex justify-center mb-5">
-              <span className="bb-tag bb-tag-green">📈 {t.result}</span>
-            </div>
-
-            {/* Stars */}
-            <div className="flex justify-center gap-1 mb-5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4" style={{ color: '#f5a009', fill: '#f5a009' }} />
-              ))}
-            </div>
-
-            {/* Author */}
-            <div className="flex items-center justify-center gap-4">
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm"
-                style={{ background: 'linear-gradient(135deg, rgba(9,174,221,.3), rgba(9,174,221,.1))', border: '2px solid rgba(9,174,221,.4)', color: 'var(--primary)', fontFamily: 'var(--font-h)' }}
-              >
-                {t.avatar}
-              </div>
-              <div className="text-left">
-                <p className="font-bold" style={{ color: 'var(--fg)', fontFamily: 'var(--font-h)', fontSize: '15px' }}>{t.name}</p>
-                <p style={{ fontFamily: 'var(--font-m)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.06em' }}>{t.role} — <span style={{ color: 'var(--primary)' }}>{t.company}</span></p>
-              </div>
-            </div>
-
-            {/* Industry */}
-            <div className="flex justify-center mt-4">
-              <span className="bb-tag bb-tag-muted">{t.industry}</span>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Dots */}
-      <div className="flex justify-center gap-2 mt-5">
-        {testimonials.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
-            className="rounded-full transition-all"
-            style={{
-              width: i === currentIndex ? '24px' : '8px',
-              height: '8px',
-              background: i === currentIndex ? 'var(--primary)' : 'var(--border)',
-            }}
-            aria-label={`Ga naar testimonial ${i + 1}`}
-          />
-        ))}
-      </div>
-
-      {/* Rating footer */}
-      <p className="text-center mt-4" style={{ fontFamily: 'var(--font-m)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.06em' }}>
-        Gemiddelde score: 4.9/5 uit 127 beoordelingen
-      </p>
-    </div>
-  );
-}
-
-// ============================================================================
-// JOTFORM ASSESSMENT VIEW
-// ============================================================================
-function JotFormView({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="w-full min-h-dvh flex flex-col" style={{ background: 'var(--bg)' }}>
-      {/* Header */}
-      <header
-        className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 flex-none"
-        style={{ background: 'rgba(11,16,23,.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--border)' }}
+      <div
+        style={{
+          fontSize: 12,
+          color: 'var(--primary)',
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          marginBottom: 14,
+          fontFamily: 'var(--font-m)',
+        }}
       >
-        <div className="flex items-center gap-3">
-          <div
-            className="flex items-center justify-center w-9 h-9 rounded"
-            style={{ background: 'rgba(9,174,221,.1)', border: '1px solid rgba(9,174,221,.3)', fontFamily: 'var(--font-m)', color: 'var(--primary)', fontSize: '11px', fontWeight: 600 }}
-          >
-            APK
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-h)', fontWeight: 800, fontSize: '16px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Recruitment APK
-            </div>
-            <div style={{ fontFamily: 'var(--font-m)', fontSize: '10px', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              by Recruitin
-            </div>
-          </div>
+        Hoe wij scoren
+      </div>
+      <h2
+        style={{
+          fontSize: 'clamp(1.5rem, 3.2vw, 2rem)',
+          margin: '0 0 24px',
+          color: 'var(--fg)',
+          lineHeight: 1.25,
+          fontFamily: 'var(--font-h)',
+          fontWeight: 800,
+        }}
+      >
+        29 vragen {'·'} 4 categorieën {'·'} 1 score
+      </h2>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 48,
+          flexWrap: 'wrap',
+          maxWidth: 900,
+          margin: '0 auto',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-h)' }}>29</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--font-m)' }}>Vragen per assessment</div>
         </div>
-        <button
-          onClick={onClose}
-          className="flex items-center gap-2 transition-colors"
-          style={{
-            fontFamily: 'var(--font-m)', fontSize: '11px', letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'var(--muted)', background: 'var(--bg-up)',
-            border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 14px', cursor: 'pointer'
-          }}
-          aria-label="Sluit assessment"
-        >
-          <X className="w-3 h-3" />
-          Sluiten
-        </button>
-      </header>
-
-      {/* JotForm Embed */}
-      <main className="flex-1 w-full overflow-hidden" style={{ minHeight: '600px' }}>
-        {!JOTFORM_FORM_ID ? (
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="bb-card p-8 text-center max-w-md">
-              <p className="text-lg font-bold mb-2" style={{ color: 'var(--fg)' }}>
-                Assessment tijdelijk niet beschikbaar
-              </p>
-              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
-                Neem contact op via{' '}
-                <a href="mailto:info@recruitin.nl" style={{ color: 'var(--primary)' }}>
-                  info@recruitin.nl
-                </a>
-              </p>
-            </div>
+        <div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-h)' }}>4</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--font-m)' }}>Categorieën (Processen {'·'} Technologie {'·'} Talent {'·'} Data)</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-h)' }}>
+            5<span style={{ fontSize: 24 }}>min</span>
           </div>
-        ) : (
-          <iframe
-            id="JotFormIFrame"
-            title="Recruitment APK Assessment"
-            onLoad={() => window.parent.scrollTo(0, 0)}
-            allowTransparency={true}
-            allow="geolocation; microphone; camera; fullscreen"
-            src={JOTFORM_EMBED_URL}
-            frameBorder="0"
-            style={{
-              width: '100%',
-              height: '100%',
-              minHeight: 'calc(100vh - 64px)',
-              border: 'none',
-              background: 'var(--bg)',
-            }}
-          />
-        )}
-      </main>
+          <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--font-m)' }}>Gemiddelde tijd</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-h)' }}>0</div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--font-m)' }}>Kosten voor eerste 2 rapporten</div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -295,6 +106,20 @@ function JotFormView({ onClose }: { onClose: () => void }) {
 export function Assessment() {
   const [currentStep, setCurrentStep] = useState<AssessmentStep>('welcome');
 
+  // First-touch landing path + query (voor UTM attributie na assessment submit)
+  useEffect(() => {
+    try {
+      if (!sessionStorage.getItem('apk_landing_path')) {
+        sessionStorage.setItem(
+          'apk_landing_path',
+          window.location.pathname + window.location.search,
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const handleStart = useCallback(() => {
     setCurrentStep('assessment');
     window.scrollTo(0, 0);
@@ -304,9 +129,9 @@ export function Assessment() {
     setCurrentStep('welcome');
   }, []);
 
-  // Assessment view (JotForm)
+  // Assessment view (custom Typeform-achtig)
   if (currentStep === 'assessment') {
-    return <JotFormView onClose={handleClose} />;
+    return <TypeformAssessment onClose={handleClose} />;
   }
 
   // Welcome (landing) view
@@ -374,12 +199,12 @@ export function Assessment() {
           >
             {/* Eyebrow */}
             <div className="flex justify-center mb-6">
-              <span className="bb-tag bb-tag-primary">🎯 Gratis Assessment</span>
+              <span className="bb-tag bb-tag-primary">GRATIS DOORLICHTING {'·'} 29 VRAGEN {'·'} 5 MINUTEN</span>
             </div>
 
             {/* H1 */}
             <h1
-              className="font-black uppercase mb-6"
+              className="font-black uppercase mb-3"
               style={{
                 fontFamily: 'var(--font-h)',
                 fontSize: 'clamp(3rem, 8vw, 6.5rem)',
@@ -391,6 +216,22 @@ export function Assessment() {
               Recruitment{' '}
               <span style={{ color: 'var(--primary)', textShadow: '0 0 40px rgba(9,174,221,0.3)' }}>APK</span>
             </h1>
+
+            {/* Kicker — APK-metafoor expliciet */}
+            <div
+              style={{
+                fontSize: 14,
+                color: 'var(--primary)',
+                fontWeight: 700,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-m)',
+                marginTop: 12,
+                marginBottom: 20,
+              }}
+            >
+              De gratis doorlichting van je wervingsproces
+            </div>
 
             {/* Subheadline */}
             <p
@@ -457,7 +298,7 @@ export function Assessment() {
               </button>
             </motion.div>
 
-            {/* Trust bar */}
+            {/* Trust bar — product-facts, geen fake social proof */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -466,18 +307,18 @@ export function Assessment() {
               style={{ color: 'var(--muted)', fontFamily: 'var(--font-m)', letterSpacing: '0.04em' }}
             >
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" style={{ color: 'var(--primary)' }} />
-                <span>500+ bedrijven</span>
+                <CheckCircle className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                <span>29 vragen</span>
               </div>
-              <span style={{ color: 'var(--border)' }}>•</span>
+              <span style={{ color: 'var(--border)' }}>{'•'}</span>
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4" style={{ color: '#f5a009', fill: '#f5a009' }} />
-                <span>4.9/5 rating</span>
+                <Star className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                <span>4 categorieën</span>
               </div>
-              <span style={{ color: 'var(--border)' }}>•</span>
+              <span style={{ color: 'var(--border)' }}>{'•'}</span>
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4" style={{ color: 'var(--green)' }} />
-                <span>Gratis & vrijblijvend</span>
+                <span>Gratis {'&'} vrijblijvend</span>
               </div>
             </motion.div>
           </motion.div>
@@ -511,10 +352,10 @@ export function Assessment() {
           </div>
         </section>
 
-        {/* ── TESTIMONIALS ───────────────────────────────────────────── */}
-        <section style={{ padding: '80px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
+        {/* ── DATA-STRIP (vervangt testimonials) ─────────────────────── */}
+        <section style={{ padding: '40px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
           <div className="max-w-4xl mx-auto">
-            <TestimonialsBlock />
+            <DataStripBlock />
           </div>
         </section>
 

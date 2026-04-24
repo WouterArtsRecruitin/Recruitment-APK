@@ -14,29 +14,10 @@ type ConsentScreen = { type: 'consent'; id: string; question: string; label: str
 type Screen = TextScreen | ChoiceScreen | RadioScreen | ConsentScreen;
 
 // ============================================================================
-// VRAGEN — 6 contact + 29 assessment
+// VRAGEN — 29 assessment + 7 contact (contact aan het einde voor hogere conversie)
 // ============================================================================
 
 const SCREENS: Screen[] = [
-  // ── CONTACT (6) ───────────────────────────────────────────────────────
-  { type: 'text', id: 'bedrijfsnaam', question: 'Wat is de naam van jullie bedrijf?', placeholder: 'bijv. Janssen Techniek BV', required: true },
-  { type: 'text', id: 'naam', question: 'Jouw naam?', hint: 'Voornaam en achternaam', placeholder: 'bijv. Jan Janssen', required: true },
-  { type: 'text', id: 'email', question: 'Zakelijk e-mailadres', hint: 'Hierop ontvang je het APK rapport', placeholder: 'jan@janssen.nl', inputType: 'email', required: true },
-  { type: 'text', id: 'telefoon', question: 'Telefoonnummer', hint: 'Optioneel', placeholder: '+31 6 12 34 56 78', inputType: 'tel', required: false },
-  {
-    type: 'choice', id: 'sector', question: 'In welke sector is jullie bedrijf actief?', required: true,
-    options: ['Bouw & Constructie', 'Techniek / Engineering', 'Automation & Techniek', 'Productie & Industrie', 'Energie & Utilities', 'Transport & Logistiek', 'IT & Software', 'Overig'],
-  },
-  {
-    type: 'choice', id: 'regio', question: 'In welke provincie is de hoofdvestiging?', required: true,
-    options: ['Groningen', 'Friesland', 'Drenthe', 'Overijssel', 'Flevoland', 'Gelderland', 'Utrecht', 'Noord-Holland', 'Zuid-Holland', 'Zeeland', 'Noord-Brabant', 'Limburg', 'Heel Nederland'],
-  },
-  {
-    type: 'consent', id: 'privacy_consent', required: true,
-    question: 'Voordat we starten met de assessment',
-    label: 'Ik ga akkoord met de <a href="/privacy" target="_blank" style="color:#09aedd;text-decoration:underline">privacyverklaring</a> en <a href="/voorwaarden" target="_blank" style="color:#09aedd;text-decoration:underline">algemene voorwaarden</a>.',
-  },
-
   // ── ASSESSMENT (29) ───────────────────────────────────────────────────
   {
     type: 'radio', id: 'q15_hoeVaak', required: true,
@@ -183,7 +164,29 @@ const SCREENS: Screen[] = [
     question: 'Welke continuous improvement processen zijn er voor recruitment?',
     options: ['Geen verbeterprocessen aanwezig', 'Incidenteel actie bij problemen, geen structuur', 'Kwartaalreviews met gestructureerde actieplannen', 'Voortdurend verbeterproces met maandelijkse data-gedreven retrospectives'],
   },
+
+  // ── CONTACT (7) — AAN HET EINDE VOOR HOGERE CONVERSIE ─────────────────
+  { type: 'text', id: 'bedrijfsnaam', question: 'Laatste stap — wat is de naam van jullie bedrijf?', hint: 'Zo kunnen we je rapport personaliseren', placeholder: 'bijv. Janssen Techniek BV', required: true },
+  { type: 'text', id: 'naam', question: 'Jouw naam?', hint: 'Voornaam en achternaam', placeholder: 'bijv. Jan Janssen', required: true },
+  { type: 'text', id: 'email', question: 'Zakelijk e-mailadres', hint: 'Hierop ontvang je het APK rapport', placeholder: 'jan@janssen.nl', inputType: 'email', required: true },
+  { type: 'text', id: 'telefoon', question: 'Telefoonnummer', hint: 'Optioneel — overslaan kan via Volgende', placeholder: '+31 6 12 34 56 78', inputType: 'tel', required: false },
+  {
+    type: 'choice', id: 'sector', question: 'In welke sector is jullie bedrijf actief?', hint: 'Optioneel — overslaan kan via Volgende', required: false,
+    options: ['Bouw & Constructie', 'Techniek / Engineering', 'Automation & Techniek', 'Productie & Industrie', 'Energie & Utilities', 'Transport & Logistiek', 'IT & Software', 'Overig'],
+  },
+  {
+    type: 'choice', id: 'regio', question: 'In welke provincie is de hoofdvestiging?', hint: 'Optioneel — overslaan kan via Volgende', required: false,
+    options: ['Groningen', 'Friesland', 'Drenthe', 'Overijssel', 'Flevoland', 'Gelderland', 'Utrecht', 'Noord-Holland', 'Zuid-Holland', 'Zeeland', 'Noord-Brabant', 'Limburg', 'Heel Nederland'],
+  },
+  {
+    type: 'consent', id: 'privacy_consent', required: true,
+    question: 'Nog één ding — we hebben je akkoord nodig',
+    label: 'Ik ga akkoord met de <a href="/privacy" target="_blank" style="color:#09aedd;text-decoration:underline">privacyverklaring</a> en <a href="/voorwaarden" target="_blank" style="color:#09aedd;text-decoration:underline">algemene voorwaarden</a>.',
+  },
 ];
+
+const TOTAL_QUESTIONS = 29; // 29 assessment vragen (contact velden staan na deze)
+const CONTACT_COUNT = 7;
 
 const TOTAL = SCREENS.length;
 const KEYS = ['A', 'B', 'C', 'D'];
@@ -209,6 +212,7 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
+  const [hp, setHp] = useState(''); // honeypot — mag nooit ingevuld zijn
   const inputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FREE = 2;
@@ -217,6 +221,32 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const count = parseInt(localStorage.getItem('apk_submissions') || '0');
     if (count >= MAX_FREE) setLimitReached(true);
+  }, []);
+
+  // Save-and-resume draft (P0-B)
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem('apk_draft');
+      if (!draft) return;
+      const parsed = JSON.parse(draft);
+      const age = Date.now() - (parsed.ts || 0);
+      if (age > 24 * 3600 * 1000) {
+        localStorage.removeItem('apk_draft');
+        return;
+      }
+      const resumeIdx = parsed.idx || 0;
+      if (resumeIdx <= 0) return; // niks om te hervatten
+      // eslint-disable-next-line no-alert
+      if (window.confirm(`Je hebt al een APK in gang gezet (stap ${resumeIdx + 1} van ${TOTAL}). Hervatten?`)) {
+        setAnswers(parsed.answers || {});
+        setIdx(resumeIdx);
+      } else {
+        localStorage.removeItem('apk_draft');
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const screen = SCREENS[idx];
@@ -228,6 +258,14 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [idx, screen.type]);
+
+  const persistDraft = (nextAnswers: Record<string, string>, nextIdx: number) => {
+    try {
+      localStorage.setItem('apk_draft', JSON.stringify({ answers: nextAnswers, idx: nextIdx, ts: Date.now() }));
+    } catch {
+      /* ignore quota/privacy errors */
+    }
+  };
 
   const goNext = useCallback(() => {
     const val = answers[screen.id] || '';
@@ -242,37 +280,100 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
     setError('');
     if (idx < TOTAL - 1) {
       setDir(1);
-      setIdx(i => i + 1);
+      const nextIdx = idx + 1;
+      setIdx(nextIdx);
+      persistDraft(answers, nextIdx);
     } else {
       handleSubmit();
     }
   }, [answers, screen, idx]);
 
   const goPrev = useCallback(() => {
-    if (idx > 0) { setDir(-1); setIdx(i => i - 1); setError(''); }
-  }, [idx]);
+    if (idx > 0) {
+      setDir(-1);
+      const nextIdx = idx - 1;
+      setIdx(nextIdx);
+      persistDraft(answers, nextIdx);
+      setError('');
+    }
+  }, [idx, answers]);
 
   const setAnswer = (id: string, val: string) => {
-    setAnswers(prev => ({ ...prev, [id]: val }));
+    setAnswers(prev => {
+      const next = { ...prev, [id]: val };
+      persistDraft(next, idx);
+      return next;
+    });
     setError('');
   };
 
   const selectRadio = (val: string) => {
-    setAnswer(screen.id, val);
+    // Direct updaten EN persist zodat de autoshift de nieuwe answers meeneemt
+    setAnswers(prev => {
+      const next = { ...prev, [screen.id]: val };
+      persistDraft(next, idx);
+      return next;
+    });
+    setError('');
     setTimeout(() => {
-      setError('');
-      if (idx < TOTAL - 1) { setDir(1); setIdx(i => i + 1); }
-      else handleSubmit();
+      if (idx < TOTAL - 1) {
+        setDir(1);
+        const nextIdx = idx + 1;
+        setIdx(nextIdx);
+        persistDraft({ ...answers, [screen.id]: val }, nextIdx);
+      } else {
+        handleSubmit();
+      }
     }, 350);
   };
 
   const handleSubmit = async () => {
+    // Honeypot: als het verborgen veld ingevuld is, silent-fail (geen error)
+    if (hp && hp.trim().length > 0) {
+      setSubmitting(true);
+      setTimeout(() => {
+        window.location.href = '/bedankt';
+      }, 1500);
+      return;
+    }
+
     setSubmitting(true);
+
+    // Transform answers: voor radio-vragen sturen we de option-index (0-3) i.p.v. label-tekst
+    const payloadAnswers: Record<string, unknown> = {};
+    for (const s of SCREENS) {
+      const raw = answers[s.id];
+      if (raw === undefined || raw === '') continue;
+      if (s.type === 'radio') {
+        const optionIdx = s.options.indexOf(raw);
+        payloadAnswers[s.id] = optionIdx >= 0 ? optionIdx : raw;
+      } else {
+        payloadAnswers[s.id] = raw;
+      }
+    }
+
+    // UTM + referrer attribution (P1-B)
+    const urlParams = new URLSearchParams(window.location.search);
+    const attribution = {
+      utm_source: urlParams.get('utm_source'),
+      utm_medium: urlParams.get('utm_medium'),
+      utm_campaign: urlParams.get('utm_campaign'),
+      utm_content: urlParams.get('utm_content'),
+      utm_term: urlParams.get('utm_term'),
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      landing_path: (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('apk_landing_path'))
+        || (window.location.pathname + window.location.search),
+    };
+
     try {
       const res = await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({
+          ...payloadAnswers,
+          _attribution: attribution,
+          website: hp, // honeypot — backend mag dit ook checken
+        }),
       });
       const data = await res.json();
 
@@ -297,6 +398,9 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
       // Rate limit: tel submission
       const count = parseInt(localStorage.getItem('apk_submissions') || '0');
       localStorage.setItem('apk_submissions', (count + 1).toString());
+
+      // Draft opruimen — submission succesvol
+      try { localStorage.removeItem('apk_draft'); } catch { /* ignore */ }
 
       if (data.rapportUrl) {
         window.location.href = data.rapportUrl;
@@ -333,24 +437,27 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
       <div style={{ minHeight: '100dvh', background: '#05080c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Outfit, system-ui, sans-serif' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '480px', width: '100%', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>{'\uD83D\uDD12'}</div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f0f4f8', marginBottom: '8px' }}>Je gratis assessments zijn op</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f0f4f8', marginBottom: '8px' }}>Je 2 gratis APK-rapporten zijn gebruikt</h2>
           <p style={{ fontSize: '15px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '32px' }}>
-            Je hebt {MAX_FREE} gratis Recruitment APK assessments gebruikt. Upgrade naar Pro voor onbeperkt toegang.
+            Je eerste {MAX_FREE} APK-rapporten waren gratis. Voor een 3e assessment (bijvoorbeeld een dochterbedrijf of andere business unit) betaal je {'€'}49 per rapport.
           </p>
 
-          {/* Pricing card */}
-          <div style={{ background: 'rgba(17,24,34,0.8)', border: '2px solid #09aedd', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>Recruitment APK Pro</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', marginBottom: '16px' }}>
+          {/* Pricing card — extra assessment */}
+          <div style={{ background: 'rgba(17,24,34,0.8)', border: '2px solid #09aedd', borderRadius: '16px', padding: '32px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>Extra APK-assessment</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', marginBottom: '6px' }}>
               <span style={{ fontSize: '42px', fontWeight: 900, color: '#f0f4f8' }}>{'\u20AC'}49</span>
               <span style={{ fontSize: '14px', color: '#94a3b8' }}>per rapport</span>
             </div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '20px' }}>
+              Eenmalig, vrijblijvend, geen abonnement
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px', textAlign: 'left' }}>
               {[
+                'Zelfde 29-vragen assessment',
                 'Volledig AI-gegenereerd rapport',
-                'SWOT analyse + peer benchmark',
-                'Gepersonaliseerd actieplan 30/60/90 dagen',
-                'Inclusief 30-min strategiegesprek',
+                'SWOT + peer benchmark',
+                'Actieplan 30/60/90 dagen',
                 'PDF export',
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', color: '#94a3b8' }}>
@@ -360,8 +467,17 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
             </div>
             <a href="https://buy.stripe.com/dRm7sE0Xnd9Vfs9fA34Rq06" target="_blank" rel="noopener noreferrer"
               style={{ display: 'block', background: '#09aedd', color: '#05080c', padding: '16px', borderRadius: '10px', fontSize: '16px', fontWeight: 700, textDecoration: 'none', textAlign: 'center' }}>
-              Upgrade naar Pro {'\u2192'}
+              Koop extra assessment ({'\u20ac'}49) {'\u2192'}
             </a>
+          </div>
+
+          {/* Upgrade bestaand rapport naar Verbeterplan \u20ac249 \u2014 secundair */}
+          <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.6 }}>
+            Of upgrade je huidige rapport naar het{' '}
+            <a href="https://buy.stripe.com/dRm14g8pP0n9a7P5Zt4Rq07" target="_blank" rel="noopener noreferrer" style={{ color: '#E8630A', textDecoration: 'underline', fontWeight: 600 }}>
+              volledige Verbeterplan ({'\u20ac'}249)
+            </a>{' '}
+            {'\u2014'} unlock alle acties en KPI{"'"}s per categorie {'\u2192'}
           </div>
 
           <div style={{ fontSize: '13px', color: '#94a3b8' }}>
@@ -392,11 +508,26 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
     );
   }
 
-  const isContact = idx < 7;
-  const qNum = isContact ? `Stap ${idx + 1} van 7` : `Vraag ${idx - 6} van 29`;
+  // Contact-velden staan NA de 29 assessment-vragen
+  const isContact = idx >= TOTAL_QUESTIONS;
+  const qNum = isContact
+    ? `Stap ${idx - TOTAL_QUESTIONS + 1} van ${CONTACT_COUNT}`
+    : `Vraag ${idx + 1} van ${TOTAL_QUESTIONS}`;
 
   return (
     <div style={{ minHeight: '100dvh', background: '#05080c', display: 'flex', flexDirection: 'column', fontFamily: 'Outfit, system-ui, sans-serif' }}>
+
+      {/* ── HONEYPOT (anti-bot) — off-screen, aria-hidden, autocomplete off ── */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={hp}
+        onChange={e => setHp(e.target.value)}
+        style={{ position: 'absolute', left: '-9999px', top: '-9999px', height: 0, width: 0, overflow: 'hidden', opacity: 0 }}
+      />
 
       {/* ── PROGRESS BAR ── */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(30,45,64,0.6)', zIndex: 50 }}>

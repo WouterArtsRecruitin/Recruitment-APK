@@ -538,15 +538,14 @@ export function Rapport() {
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.75)' }}>
               <div style={{ background: 'white', borderRadius: '12px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', maxWidth: '340px' }}>
                 <div style={{ fontSize: '15px', fontWeight: 800, color: '#1a1a1a', marginBottom: '6px' }}>Verbeterplan beschikbaar</div>
-                <div style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>Kies hoe je het wilt ontvangen</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" target="_blank" rel="noopener noreferrer"
-                    style={{ flex: 1, display: 'block', background: 'white', border: '2px solid #09aedd', borderRadius: '8px', padding: '12px 8px', textDecoration: 'none', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gratis</div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginTop: '4px' }}>30-min gesprek</div>
-                  </a>
+                <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>Kies hoe je het wilt ontvangen</div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch', paddingTop: '12px' }}>
+                  {/* €249 VERBETERPLAN — MEEST GEKOZEN (middle tier, emphasized, shown first) */}
                   <a href="https://buy.stripe.com/dRm14g8pP0n9a7P5Zt4Rq07" target="_blank" rel="noopener noreferrer"
-                    style={{ flex: 1, display: 'block', background: 'white', border: '2px solid #E8630A', borderRadius: '8px', padding: '12px 8px', textDecoration: 'none', textAlign: 'center' }}>
+                    style={{ position: 'relative', flex: 1, display: 'block', background: 'white', border: '2px solid #E8630A', borderRadius: '8px', padding: '14px 8px', textDecoration: 'none', textAlign: 'center', transform: 'scale(1.06)', zIndex: 1, boxShadow: '0 12px 48px rgba(232,99,10,0.25)' }}>
+                    <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#E8630A', color: 'white', fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 12, letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                      MEEST GEKOZEN
+                    </div>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#E8630A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{'\u20AC'}249</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginTop: '4px' }}>Verbeterplan</div>
                   </a>
@@ -554,6 +553,12 @@ export function Rapport() {
                     style={{ flex: 1, display: 'block', background: '#E8630A', borderRadius: '8px', padding: '12px 8px', textDecoration: 'none', textAlign: 'center' }}>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{'\u20AC'}995</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginTop: '4px' }}>Plan + coaching</div>
+                  </a>
+                  {/* Gratis 30-min gesprek — secundair, laatste */}
+                  <a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" target="_blank" rel="noopener noreferrer"
+                    style={{ flex: 1, display: 'block', background: 'white', border: '2px solid #09aedd', borderRadius: '8px', padding: '12px 8px', textDecoration: 'none', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gratis</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginTop: '4px' }}>30-min gesprek</div>
                   </a>
                 </div>
               </div>

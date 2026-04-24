@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
+import crypto from 'crypto';
 
 // ============================================================================
 // CONFIGURATIE
@@ -14,6 +15,8 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const SCORE_THRESHOLD = 60;
 const MAX_SCORE = 100; // 4 categorieën × 25 punten
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
+const META_PIXEL_ID = '238226887541404';
+const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || '';
 
 // ============================================================================
 // TYPES
@@ -37,7 +40,7 @@ interface ScoredLead {
   score: number;
   scorePercent: number;
   categories: CategoryScore[];
-  answers: Record<string, string>;
+  answers: Record<string, any>;
 }
 
 // ============================================================================
@@ -57,6 +60,19 @@ const CATEGORY_QUESTIONS: Record<string, number[]> = {
   'Data & Analytics': [2, 3, 10, 11, 15, 18, 20, 23, 24, 26, 28, 29], // 12 vragen → max 120 raw → schaal naar 25
 };
 
+/**
+ * New scoring path: frontend sends option index (0-3) per question,
+ * which maps deterministically to 0/3/7/10 points.
+ */
+function scoreFromIndex(idx: number): number {
+  return [0, 3, 7, 10][idx] ?? 0;
+}
+
+/**
+ * @deprecated Legacy keyword-matching scorer. Kept as fallback for old
+ * Jotform submissions. New frontend submits option indices 0-3 per
+ * question; those are scored via `scoreFromIndex` instead.
+ */
 function scoreAnswer(answerText: string): number {
   if (!answerText) return 0;
   const v = answerText.toLowerCase();
@@ -99,24 +115,40 @@ function scoreAnswer(answerText: string): number {
   return 0; // Onherkenbaar
 }
 
-function calculateCategoryScores(data: Record<string, string>): CategoryScore[] {
-  // Bouw een map van vraagnummer → antwoordtekst
+function calculateCategoryScores(data: Record<string, any>): { categories: CategoryScore[]; individualScores: Record<number, number> } {
+  // Bouw een map van vraagnummer → antwoord (kan number 0-3 OF string zijn)
   // JotForm vragen Q15-Q43 = assessment vragen 1-29
-  const questionAnswers: Record<number, string> = {};
+  const questionAnswers: Record<number, number | string> = {};
 
+  // NEW: check for direct `answers.qN` shape (e.g. `answers[q1]=2`) coming from
+  // the new index-based frontend. Supports both `answers[q1]` (already flattened
+  // to key "q1") and the raw value.
   for (const [key, value] of Object.entries(data)) {
-    if (!value || typeof value !== 'string') continue;
+    if (value === undefined || value === null || value === '') continue;
     const lk = key.toLowerCase();
 
     // Skip contactvelden
     if (['email', 'naam', 'bedrijf', 'telefoon', 'sector', 'provincie', 'formid', 'submissionid', 'versturen'].some(s => lk.includes(s))) continue;
 
-    // Probeer vraagnummer te extracten uit JotForm key (q15_, q16_, etc.)
+    // Probeer vraagnummer te extracten uit key
     const qMatch = key.match(/q(\d+)/i);
-    if (qMatch) {
-      const qNum = parseInt(qMatch[1]);
-      // Q15 in JotForm = vraag 1, Q16 = vraag 2, etc.
-      if (qNum >= 15 && qNum <= 43) {
+    if (!qMatch) continue;
+    const qNum = parseInt(qMatch[1]);
+
+    // Two shapes:
+    //   (a) new frontend: key like "q1".."q29" with integer value 0-3
+    //   (b) legacy Jotform: key like "q15_..".."q43_.." with string value
+    if (qNum >= 1 && qNum <= 29) {
+      // Might be integer (new path). Accept number or numeric-string.
+      const asNum = typeof value === 'number' ? value : (typeof value === 'string' && /^[0-3]$/.test(value.trim()) ? parseInt(value.trim()) : NaN);
+      if (!Number.isNaN(asNum) && asNum >= 0 && asNum <= 3) {
+        questionAnswers[qNum] = asNum;
+      } else if (typeof value === 'string') {
+        questionAnswers[qNum] = value;
+      }
+    } else if (qNum >= 15 && qNum <= 43) {
+      // Legacy Jotform: Q15 = vraag 1, ... Q43 = vraag 29
+      if (typeof value === 'string') {
         questionAnswers[qNum - 14] = value;
       }
     }
@@ -139,12 +171,29 @@ function calculateCategoryScores(data: Record<string, string>): CategoryScore[] 
 
   console.log(`Found ${Object.keys(questionAnswers).length} assessment answers`);
 
-  // Individuele vraagscores opslaan
+  // Individuele vraagscores opslaan — per vraag loggen welk pad is gebruikt
   const individualScores: Record<number, number> = {};
+  let idxPathCount = 0;
+  let textPathCount = 0;
   for (let q = 1; q <= 29; q++) {
     const answer = questionAnswers[q];
-    individualScores[q] = answer ? scoreAnswer(answer) : 0;
+    if (answer === undefined || answer === null || answer === '') {
+      individualScores[q] = 0;
+      continue;
+    }
+    if (typeof answer === 'number' && answer >= 0 && answer <= 3) {
+      individualScores[q] = scoreFromIndex(answer);
+      idxPathCount++;
+      console.log(`[score] q${q}: idx=${answer} → ${individualScores[q]}pt`);
+    } else if (typeof answer === 'string') {
+      individualScores[q] = scoreAnswer(answer);
+      textPathCount++;
+      console.log(`[score] q${q}: text-path (legacy) → ${individualScores[q]}pt`);
+    } else {
+      individualScores[q] = 0;
+    }
   }
+  console.log(`[score] path summary: idx=${idxPathCount}, text=${textPathCount}`);
 
   const categories = Object.entries(CATEGORY_QUESTIONS).map(([name, questions]) => {
     let rawScore = 0;
@@ -173,28 +222,39 @@ function calculateTotalScore(categories: CategoryScore[]): number {
   return categories.reduce((sum, cat) => sum + cat.score, 0);
 }
 
-function extractField(data: Record<string, string>, keywords: string[]): string | undefined {
+function extractField(data: Record<string, any>, keywords: string[]): string | undefined {
   // Exacte key match
   for (const key of keywords) {
-    if (data[key]) return data[key];
+    if (typeof data[key] === 'string' && data[key]) return data[key];
   }
   // Partial match in keys (JotForm stuurt q2_bedrijfsnaam, q4_zakelijkE etc.)
   for (const [key, value] of Object.entries(data)) {
+    if (typeof value !== 'string' || !value) continue;
     const lowerKey = key.toLowerCase();
-    if (keywords.some(kw => lowerKey.includes(kw)) && value) {
+    if (keywords.some(kw => lowerKey.includes(kw))) {
       return value;
     }
   }
   return undefined;
 }
 
-function flattenJotFormData(data: Record<string, any>): Record<string, string> {
+function flattenJotFormData(data: Record<string, any>): Record<string, any> {
   // JotForm stuurt nested objecten: q3_uwNaam[first], q5_telefoonnummer[full]
   // Flatten naar platte key-value pairs + voeg herkenbare aliases toe
-  const flat: Record<string, string> = {};
+  // NEW: preserve numbers (for option indices 0-3 from new frontend)
+  const flat: Record<string, any> = {};
+
+  // If frontend sends `answers: { q1: 2, q2: 3, ... }` as a nested object,
+  // spread those keys to the top level so the rest of the pipeline finds them.
+  if (data.answers && typeof data.answers === 'object' && !Array.isArray(data.answers)) {
+    for (const [k, v] of Object.entries(data.answers)) {
+      if (!(k in flat)) flat[k] = v;
+    }
+  }
 
   for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'string') {
+    if (key === 'answers') continue; // already handled above
+    if (typeof value === 'string' || typeof value === 'number') {
       flat[key] = value;
     } else if (typeof value === 'object' && value !== null) {
       // Nested: {first: "Wouter", last: "Arts"} → combineer
@@ -270,34 +330,66 @@ async function createPipedriveDeal(lead: ScoredLead): Promise<{ success: boolean
   const pd = (path: string) => `https://api.pipedrive.com/v1/${path}?api_token=${PIPEDRIVE_API_TOKEN}`;
   const headers = { 'Content-Type': 'application/json' };
 
-  const orgRes = await fetch(pd('organizations'), {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ name: lead.companyName }),
-  });
-  if (!orgRes.ok) {
-    console.error('Pipedrive org creation failed:', orgRes.status);
-    return { success: false };
+  // --- ORG: search-then-create ---
+  let orgId: number | undefined;
+  try {
+    const orgSearchUrl = `https://api.pipedrive.com/v1/organizations/search?term=${encodeURIComponent(lead.companyName)}&exact_match=true&api_token=${PIPEDRIVE_API_TOKEN}`;
+    const orgSearch = await fetch(orgSearchUrl);
+    if (orgSearch.ok) {
+      const orgJson = await orgSearch.json();
+      orgId = orgJson?.data?.items?.[0]?.item?.id;
+      if (orgId) console.log(`[pipedrive] reuse org ${orgId} for ${lead.companyName}`);
+    }
+  } catch (err) {
+    console.error('[pipedrive] org search failed, falling through to create:', err);
   }
-  const orgData = await orgRes.json();
-  const orgId = orgData?.data?.id;
+  if (!orgId) {
+    const orgRes = await fetch(pd('organizations'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ name: lead.companyName }),
+    });
+    if (!orgRes.ok) {
+      console.error('Pipedrive org creation failed:', orgRes.status);
+      return { success: false };
+    }
+    const orgData = await orgRes.json();
+    orgId = orgData?.data?.id;
+  }
 
-  const personRes = await fetch(pd('persons'), {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      name: lead.contactName || lead.companyName,
-      email: [{ value: lead.email, primary: true }],
-      phone: lead.phone ? [{ value: lead.phone, primary: true }] : [],
-      org_id: orgId,
-    }),
-  });
-  if (!personRes.ok) {
-    console.error('Pipedrive person creation failed:', personRes.status);
-    return { success: false };
+  // --- PERSON: search-then-create ---
+  let personId: number | undefined;
+  if (lead.email) {
+    try {
+      const personSearchUrl = `https://api.pipedrive.com/v1/persons/search?term=${encodeURIComponent(lead.email)}&exact_match=true&fields=email&api_token=${PIPEDRIVE_API_TOKEN}`;
+      const personSearch = await fetch(personSearchUrl);
+      if (personSearch.ok) {
+        const personJson = await personSearch.json();
+        personId = personJson?.data?.items?.[0]?.item?.id;
+        if (personId) console.log(`[pipedrive] reuse person ${personId} for ${lead.email}`);
+      }
+    } catch (err) {
+      console.error('[pipedrive] person search failed, falling through to create:', err);
+    }
   }
-  const personData = await personRes.json();
-  const personId = personData?.data?.id;
+  if (!personId) {
+    const personRes = await fetch(pd('persons'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: lead.contactName || lead.companyName,
+        email: [{ value: lead.email, primary: true }],
+        phone: lead.phone ? [{ value: lead.phone, primary: true }] : [],
+        org_id: orgId,
+      }),
+    });
+    if (!personRes.ok) {
+      console.error('Pipedrive person creation failed:', personRes.status);
+      return { success: false };
+    }
+    const personData = await personRes.json();
+    personId = personData?.data?.id;
+  }
 
   const dealRes = await fetch(pd('deals'), {
     method: 'POST',
@@ -387,7 +479,7 @@ REGELS:
 - Elke categorie-insight moet genoeg diepgang hebben om waardevol te voelen na 29 vragen
 - Output ALLEEN het JSON object, geen tekst eromheen`;
 
-  try {
+  async function callClaude(p: string, temperature: number): Promise<string | null> {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -398,26 +490,111 @@ REGELS:
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 3000,
-        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        messages: [{ role: 'user', content: p }],
       }),
     });
-
     const data = await response.json();
     const text = data?.content?.[0]?.text;
-
     if (!text) {
       console.error('Claude empty response:', JSON.stringify(data));
       return null;
     }
+    return text;
+  }
 
-    // Parse JSON — strip eventuele markdown code blocks
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const analysis = JSON.parse(jsonStr) as ClaudeAnalysis;
-    console.log('Claude analysis generated successfully');
-    return analysis;
+  function tryParse(raw: string): ClaudeAnalysis | null {
+    try {
+      const jsonStr = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(jsonStr) as ClaudeAnalysis;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    // Attempt 1 — default temperature (model default)
+    const first = await callClaude(prompt, 0.7);
+    if (first) {
+      const parsed = tryParse(first);
+      if (parsed) {
+        console.log('Claude analysis generated successfully (attempt 1)');
+        return parsed;
+      }
+      console.warn('Claude attempt 1 produced invalid JSON, retrying with strict prompt');
+    }
+
+    // Attempt 2 — temperature 0 + strict instruction
+    const strictPrompt = 'RESPOND ONLY WITH VALID JSON. NO MARKDOWN FENCES. NO PROSE.\n\n' + prompt;
+    const second = await callClaude(strictPrompt, 0);
+    if (second) {
+      const parsed = tryParse(second);
+      if (parsed) {
+        console.log('Claude analysis generated successfully (attempt 2, strict)');
+        return parsed;
+      }
+      // Both attempts failed — alert
+      await alertSlack(`:warning: Claude parse failed for ${lead.email}; raw: ${second.slice(0, 200)}`);
+    }
+    return null;
   } catch (error) {
     console.error('Claude analysis error:', error);
+    await alertSlack(`:warning: Claude analysis threw for ${lead.email}: ${String(error).slice(0, 200)}`);
     return null;
+  }
+}
+
+// ============================================================================
+// META CONVERSIONS API — server-side Lead event (dedup with client pixel via event_id)
+// ============================================================================
+
+async function sendMetaCapi(lead: ScoredLead, eventId: string): Promise<void> {
+  if (!META_ACCESS_TOKEN) {
+    console.log('[meta-capi] META_ACCESS_TOKEN not set, skipping');
+    return;
+  }
+
+  try {
+    const sha256 = (s: string) => crypto.createHash('sha256').update(s.trim().toLowerCase()).digest('hex');
+    const user_data: Record<string, any> = {};
+    if (lead.email) user_data.em = [sha256(lead.email)];
+    if (lead.phone) {
+      // Strip non-digits before hashing (Meta convention)
+      const phoneDigits = lead.phone.replace(/\D/g, '');
+      if (phoneDigits) user_data.ph = [sha256(phoneDigits)];
+    }
+
+    const payload = {
+      data: [
+        {
+          event_name: 'Lead',
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: eventId,
+          action_source: 'website',
+          event_source_url: 'https://www.recruitmentapk.nl/',
+          user_data,
+          custom_data: {
+            currency: 'EUR',
+            value: lead.score,
+          },
+        },
+      ],
+    };
+
+    const url = `https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(META_ACCESS_TOKEN)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('[meta-capi] failed:', res.status, errText.slice(0, 200));
+    } else {
+      console.log(`[meta-capi] Lead event sent, event_id=${eventId}`);
+    }
+  } catch (err) {
+    console.error('[meta-capi] error:', err);
   }
 }
 
@@ -442,24 +619,9 @@ function sanitizeString(str: string): string {
 
 const MAX_BODY_SIZE = 10 * 1024; // 10 KB
 
-/** Legacy: build rapport URL with all data in query params (fallback when Supabase unavailable) */
-function buildLegacyRapportUrl(lead: ScoredLead & { individualScores: Record<number, number> }, analysis: ClaudeAnalysis | null): string {
-  const catScores = lead.categories.map(c => c.percent).join(',');
-  const qScores = Array.from({ length: 29 }, (_, i) => lead.individualScores[i + 1] || 0).join(',');
-  const params = new URLSearchParams({
-    score: lead.score.toString(),
-    max: MAX_SCORE.toString(),
-    company: lead.companyName,
-    contact: lead.contactName,
-    sector: lead.sector,
-    cats: catScores,
-    qs: qScores,
-  });
-  if (analysis) {
-    params.set('ai', Buffer.from(JSON.stringify(analysis)).toString('base64'));
-  }
-  return `https://www.recruitmentapk.nl/rapport?${params.toString()}`;
-}
+// NOTE: The legacy `buildLegacyRapportUrl` helper was removed (P0-4).
+// Passing score/cats/ai through the URL allowed arbitrary score impersonation
+// from the client. All rapport URLs must now go via Supabase UUID lookup.
 
 // ============================================================================
 // RATE LIMITING (Supabase-backed)
@@ -468,40 +630,58 @@ function buildLegacyRapportUrl(lead: ScoredLead & { individualScores: Record<num
 async function checkRateLimit(req: VercelRequest): Promise<boolean> {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-  if (!SUPABASE_URL || !SUPABASE_KEY) return true; // fail-open if not configured
+  // Fail-closed: missing config → deny the request
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('[rate-limit] Supabase not configured — denying request');
+    return false;
+  }
 
-  // Hash IP for privacy
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 'unknown';
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip + 'apk-salt-2026');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const ipHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    // Hash IP for privacy
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 'unknown';
+    const encoder = new TextEncoder();
+    const data = encoder.encode(ip + 'apk-salt-2026');
+    const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
+    const ipHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-  const windowMs = 60 * 60 * 1000; // 1 hour
-  const maxRequests = 5; // max 5 per hour per IP
-  const since = new Date(Date.now() - windowMs).toISOString();
+    const windowMs = 60 * 60 * 1000; // 1 hour
+    const maxRequests = 5; // max 5 per hour per IP
+    const since = new Date(Date.now() - windowMs).toISOString();
 
-  // Count recent requests
-  const countRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/apk_rate_limits?ip_hash=eq.${ipHash}&created_at=gte.${since}&select=id`,
-    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
-  );
-  const recent = await countRes.json();
-  if (Array.isArray(recent) && recent.length >= maxRequests) return false;
+    // Count recent requests
+    const countRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/apk_rate_limits?ip_hash=eq.${ipHash}&created_at=gte.${since}&select=id`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!countRes.ok) {
+      console.error('[rate-limit] Supabase count query failed:', countRes.status);
+      return false;
+    }
+    const recent = await countRes.json();
+    if (Array.isArray(recent) && recent.length >= maxRequests) return false;
 
-  // Log this request
-  await fetch(`${SUPABASE_URL}/rest/v1/apk_rate_limits`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ip_hash: ipHash })
-  });
+    // Log this request
+    await fetch(`${SUPABASE_URL}/rest/v1/apk_rate_limits`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ip_hash: ipHash })
+    });
 
-  return true;
+    return true;
+  } catch (err) {
+    console.error('[rate-limit] Supabase error, denying:', err);
+    return false;
+  }
 }
 
 function verifyWebhookSecret(req: VercelRequest): boolean {
   if (!WEBHOOK_SECRET) {
-    console.warn('WEBHOOK_SECRET not configured — endpoint is unauthenticated');
+    if (process.env.VERCEL_ENV === 'production') {
+      // In production: missing WEBHOOK_SECRET is a misconfiguration.
+      // Throw so the handler returns 500 and the ops team notices.
+      throw new Error('WEBHOOK_SECRET is not configured in production');
+    }
+    console.warn('WEBHOOK_SECRET not configured — dev/preview only, allowing');
     return true;
   }
   // Verify via shared secret only — no Origin-based bypasses
@@ -620,19 +800,55 @@ recruitmentapk.nl — powered by Recruitin B.V.
 // SLACK NOTIFICATIE
 // ============================================================================
 
+/**
+ * Escape Slack mrkdwn control chars. Slack interprets `<…|…>` as clickable
+ * links, so a user-supplied value like `<https://evil.com|click>` would
+ * become a real link. Escape `<`, `>`, `&` to neutralise.
+ */
+function slackEscape(s: string): string {
+  return (s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function sendSlackNotification(lead: ScoredLead, dealId?: number): Promise<void> {
   if (!SLACK_WEBHOOK_URL) return;
 
   const emoji = lead.score >= SCORE_THRESHOLD ? ':fire:' : ':seedling:';
   const path = lead.score >= SCORE_THRESHOLD ? 'Path A (Sales)' : 'Path B (Nurture)';
 
+  const safe = {
+    company: slackEscape(lead.companyName),
+    contact: slackEscape(lead.contactName),
+    sector: slackEscape(lead.sector),
+  };
+
   await fetch(SLACK_WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${lead.companyName}\n*Contact:* ${lead.contactName}\n*Score:* ${lead.score}/${MAX_SCORE} → ${path}\n${lead.categories.map(c => `  ${c.name}: ${c.score}/25`).join('\n')}\n*Sector:* ${lead.sector}${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
+      text: `${emoji} *Nieuwe APK Assessment*\n*Bedrijf:* ${safe.company}\n*Contact:* ${safe.contact}\n*Score:* ${lead.score}/${MAX_SCORE} → ${path}\n${lead.categories.map(c => `  ${slackEscape(c.name)}: ${c.score}/25`).join('\n')}\n*Sector:* ${safe.sector}${dealId ? `\n*Pipedrive:* <https://recruitin.pipedrive.com/deal/${dealId}|Deal #${dealId}>` : ''}`,
     }),
   });
+}
+
+/**
+ * Non-blocking Slack alert — used when Pipedrive/Resend/Claude fail and
+ * a human needs to pick up the lead manually.
+ */
+async function alertSlack(msg: string): Promise<void> {
+  const url = process.env.SLACK_WEBHOOK_URL;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: msg }),
+    });
+  } catch {
+    // swallow — we never want alert-send failures to break the main request
+  }
 }
 
 // ============================================================================
@@ -644,11 +860,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!verifyWebhookSecret(req)) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    if (!verifyWebhookSecret(req)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  } catch (err) {
+    // verifyWebhookSecret throws in production when WEBHOOK_SECRET is missing
+    console.error('[auth] misconfigured:', err);
+    return res.status(500).json({ error: 'Server misconfigured' });
   }
 
-  // Server-side rate limiting
+  // Server-side rate limiting (fail-closed)
   const allowed = await checkRateLimit(req);
   if (!allowed) {
     return res.status(429).json({ error: 'Te veel verzoeken. Probeer het later opnieuw.' });
@@ -665,6 +887,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       typeof req.body === 'string'
         ? Object.fromEntries(new URLSearchParams(req.body))
         : req.body;
+
+    // --- Honeypot: bots fill hidden fields, real users don't ---
+    if (data.website || data.url || data.phone_alt) {
+      console.warn('[honeypot] Bot submission blocked:', { ua: req.headers['user-agent'] });
+      // silent accept — return a harmless "success" with score=0 to confuse the bot
+      return res.status(200).json({ success: true, rapportUrl: '/rapport?score=0&hp=1' });
+    }
 
     console.log('Incoming data keys:', Object.keys(data).join(', '));
 
@@ -687,11 +916,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     let dealId: number | undefined;
+    let pipedriveFailed = false;
 
     // Pipedrive deal alleen bij hoge score
     if (lead.score >= SCORE_THRESHOLD) {
       const dealResult = await createPipedriveDeal(lead);
       dealId = dealResult.dealId;
+      if (!dealResult.success) {
+        pipedriveFailed = true;
+        // Non-blocking alert — don't fail the main request
+        await alertSlack(
+          `:rotating_light: *Pipedrive deal FAILED — manual action needed*\n` +
+          `*Bedrijf:* ${slackEscape(lead.companyName)}\n` +
+          `*Email:* ${slackEscape(lead.email)}\n` +
+          `*Score:* ${lead.score}/${MAX_SCORE} (Path A)\n` +
+          `Handmatig invoeren in Pipedrive pipeline ${PIPEDRIVE_PIPELINE_ID}.`
+        );
+      }
     }
 
     // Claude analyse genereren (parallel met andere acties)
@@ -703,7 +944,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Store rapport data in Supabase — returns UUID for clean URL
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-    let rapportUrl: string;
+    let rapportUrl: string | null = null;
 
     if (SUPABASE_URL && SUPABASE_KEY) {
       const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/apk_rapports`, {
@@ -734,29 +975,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`Rapport stored in Supabase: ${row.id}`);
       } else {
         console.error('Supabase insert failed:', await insertRes.text());
-        // Fallback to old URL params
-        rapportUrl = buildLegacyRapportUrl(lead, analysis);
       }
     } else {
-      // No Supabase configured — use legacy URL params
-      rapportUrl = buildLegacyRapportUrl(lead, analysis);
+      console.error('Supabase not configured — cannot store rapport');
+    }
+
+    if (!rapportUrl) {
+      // No Supabase-backed rapport URL → fail hard. Never fall back to a
+      // client-supplied-params URL (security hole: arbitrary score impersonation).
+      await alertSlack(
+        `:rotating_light: *APK: rapport opslaan FAILED*\n` +
+        `*Bedrijf:* ${slackEscape(lead.companyName)}\n` +
+        `*Email:* ${slackEscape(lead.email)}\n` +
+        `Supabase insert mislukt — rapport niet opvraagbaar.`
+      );
+      return res.status(500).json({ error: 'Rapport kon niet worden opgeslagen. Probeer het later opnieuw.' });
     }
 
     // Email CTA URL met UTM tracking (GA4 meet doorklikken vanuit email)
     const emailRapportUrl = `${rapportUrl}&utm_source=email&utm_medium=transactional&utm_campaign=apk-rapport&utm_content=cta-button`;
 
     // Email altijd sturen als er een emailadres is
+    let emailSent = true;
     if (lead.email) {
-      await sendConfirmationEmail(lead, emailRapportUrl);
+      emailSent = await sendConfirmationEmail(lead, emailRapportUrl);
+      if (!emailSent) {
+        await alertSlack(
+          `:rotating_light: *Resend email FAILED — manual action needed*\n` +
+          `*Bedrijf:* ${slackEscape(lead.companyName)}\n` +
+          `*Email:* ${slackEscape(lead.email)}\n` +
+          `*Score:* ${lead.score}/${MAX_SCORE}\n` +
+          `*Rapport:* ${rapportUrl}\n` +
+          `Stuur handmatig door.`
+        );
+      }
     }
 
     await sendSlackNotification(lead, dealId);
+
+    // Meta CAPI — server-side Lead event with dedup event_id
+    const eventId = crypto.randomUUID();
+    await sendMetaCapi(lead, eventId);
 
     return res.status(200).json({
       success: true,
       score: lead.score,
       path: lead.score >= SCORE_THRESHOLD ? 'A' : 'B',
       rapportUrl,
+      eventId, // frontend: fbq('trackSingle','Lead',{},{eventID: eventId})
+      pipedriveFailed: pipedriveFailed || undefined,
+      emailSent: emailSent ? undefined : false,
     });
   } catch (error) {
     console.error('Score handler error:', error);

@@ -25,20 +25,13 @@ const FlowMaster = {
         currentQuestion: 1
     },
 
-    // Google Sheets
-    gapi: null,
-    googleAuth: null,
-    sheetsInitialized: false,
-
     // ========================================
     // Initialization
     // ========================================
 
     init: function() {
-        console.log('🚀 FlowMaster Pro V4 initializing...');
         this.setupEventListeners();
         this.updateProgress();
-        this.initializeGoogleAPI();
     },
 
     setupEventListeners: function() {
@@ -51,44 +44,6 @@ const FlowMaster = {
                 element.addEventListener('change', () => this.checkStep2());
             }
         });
-    },
-
-    // ========================================
-    // Google API Integration
-    // ========================================
-
-    initializeGoogleAPI: async function() {
-        try {
-            if (typeof gapi === 'undefined' || !CONFIG.features.googleSheetsEnabled) {
-                console.log('⚠️ Google API not available or disabled');
-                return false;
-            }
-
-            await new Promise((resolve, reject) => {
-                gapi.load('auth2:client', {
-                    callback: resolve,
-                    onerror: reject,
-                    timeout: 10000,
-                    ontimeout: reject
-                });
-            });
-
-            await gapi.client.init({
-                apiKey: CONFIG.googleSheets.apiKey,
-                clientId: CONFIG.googleSheets.clientId,
-                discoveryDocs: [CONFIG.googleSheets.discoveryDoc],
-                scope: CONFIG.googleSheets.scopes
-            });
-
-            this.googleAuth = gapi.auth2.getAuthInstance();
-            this.sheetsInitialized = true;
-            console.log('✅ Google Sheets API initialized');
-
-            return true;
-        } catch (error) {
-            console.error('❌ Google Sheets initialization failed:', error);
-            return false;
-        }
     },
 
     // ========================================
@@ -347,7 +302,8 @@ const FlowMaster = {
         });
 
         selectedElement.classList.add('selected');
-        this.formData.answers[questionId - 1] = points;
+        const text = selectedElement.querySelector('.assessment-option-text')?.textContent?.trim() || '';
+        this.formData.answers[questionId - 1] = { points, text };
 
         const nextButton = document.getElementById('assessmentNext');
         if (nextButton) {
@@ -374,8 +330,9 @@ const FlowMaster = {
         let totalScore = 0;
         let maxPossibleScore = window.ASSESSMENT_QUESTIONS.length * 10;
 
-        Object.values(this.formData.answers).forEach(points => {
-            totalScore += points;
+        Object.values(this.formData.answers).forEach(answer => {
+            const pts = typeof answer === 'object' ? answer.points : answer;
+            totalScore += pts;
         });
 
         this.formData.totalScore = Math.round((totalScore / maxPossibleScore) * 100);
@@ -390,8 +347,9 @@ const FlowMaster = {
         const urgencyQuestions = [2, 5, 13, 14, 17, 19, 23];
 
         urgencyQuestions.forEach(q => {
-            if (answers[q] !== undefined && answers[q] <= 3) {
-                urgencyScore++;
+            if (answers[q] !== undefined) {
+                const pts = typeof answers[q] === 'object' ? answers[q].points : answers[q];
+                if (pts <= 3) urgencyScore++;
             }
         });
 
@@ -406,9 +364,10 @@ const FlowMaster = {
 
         Object.keys(answers).forEach(key => {
             const answer = answers[key];
-            if (answer <= 2) score += 15;
-            else if (answer <= 4) score += 10;
-            else if (answer >= 8) score -= 5;
+            const pts = typeof answer === 'object' ? answer.points : answer;
+            if (pts <= 2) score += 15;
+            else if (pts <= 4) score += 10;
+            else if (pts >= 8) score -= 5;
         });
 
         if (this.formData.companySize === '200+') score += 20;
@@ -423,7 +382,10 @@ const FlowMaster = {
     },
 
     calculatePainLevel: function(answers) {
-        const problemCount = Object.values(answers).filter(answer => answer <= 3).length;
+        const problemCount = Object.values(answers).filter(answer => {
+            const pts = typeof answer === 'object' ? answer.points : answer;
+            return pts <= 3;
+        }).length;
 
         if (problemCount >= 10) return 'KRITIEK';
         if (problemCount >= 7) return 'HOOG';
@@ -461,42 +423,34 @@ const FlowMaster = {
         this.showLoading(true);
 
         try {
-            // Try new API endpoint first
-            let response;
-            let result;
+            // Build payload met JotForm-compatibele veldnamen voor /api/score
+            const payload = {
+                bedrijfsnaam: contactData.company,
+                email: contactData.email,
+                naam: contactData.name,
+                telefoon: contactData.phone,
+                sector: this.formData.sector || '',
+                teamgrootte: this.formData.companySize || '',
+            };
 
-            try {
-                response = await fetch('/api/submit-assessment.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(contactData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('API endpoint not available');
-                }
-
-                result = await response.json();
-            } catch (apiError) {
-                // Fallback to root endpoint if /api/ doesn't exist
-                console.log('Trying fallback endpoint...');
-                response = await fetch('/submit_assessment.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(this.prepareLegacySubmissionData())
-                });
-
-                if (!response.ok) {
-                    throw new Error('Both endpoints failed');
-                }
-
-                result = await response.json();
+            // Assessment antwoorden: q15 = vraag 1, q16 = vraag 2, etc.
+            for (let i = 0; i < 29; i++) {
+                const answer = this.formData.answers[i];
+                const text = answer && typeof answer === 'object' ? answer.text : '';
+                payload[`q${15 + i}_antwoord`] = text;
             }
 
+            const response = await fetch('/api/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const result = await response.json();
             if (result.success) {
                 this.showSuccessMessage(contactData);
             } else {
@@ -508,19 +462,6 @@ const FlowMaster = {
         } finally {
             this.showLoading(false);
         }
-    },
-
-    prepareLegacySubmissionData: function() {
-        // Format for old submit_assessment.php endpoint
-        return {
-            name: document.getElementById('contact-name')?.value.trim() || '',
-            email: document.getElementById('contact-email')?.value.trim() || '',
-            phone: document.getElementById('contact-phone')?.value.trim() || '',
-            company: document.getElementById('contact-company')?.value.trim() || '',
-            answers: this.formData.answers,
-            completionTime: 0,
-            timestamp: new Date().toISOString()
-        };
     },
 
     prepareSubmissionData: function() {

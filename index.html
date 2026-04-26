@@ -1,8 +1,88 @@
 <!DOCTYPE html>
 <html lang="nl">
   <head>
-    <!-- Cookiebot — must be first. data-blockingmode="auto" auto-swaps type="text/plain" on tracker scripts post-consent. -->
-    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="255025f6-3932-479b-a9d7-6a4fac614cb8" data-blockingmode="auto" type="text/javascript"></script>
+    <!--
+      In-house GDPR consent — sets window.Cookiebot.consent.{marketing,statistics}
+      based on user choice, fires CookiebotOnConsentReady event.
+      Compatible with existing pixel-gating code in MetaPixel/LinkedInInsightTag/AnalyticsProvider.
+      Stores choice in localStorage (apk_consent_v1). Auto-loads tracker pixels post-accept.
+    -->
+    <script>
+    (function(){
+      'use strict';
+      var KEY = 'apk_consent_v1';
+      var BANNER_DELAY = 800; // ms after page load before showing
+      var stored = null;
+      try { stored = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){}
+
+      // Set up window.Cookiebot shape so existing gated code "just works"
+      window.Cookiebot = window.Cookiebot || {
+        consent: {
+          marketing: !!(stored && stored.marketing),
+          statistics: !!(stored && stored.statistics),
+          necessary: true,
+          preferences: !!(stored && stored.preferences)
+        }
+      };
+
+      function fireReady(){
+        try { window.dispatchEvent(new Event('CookiebotOnConsentReady')); } catch(e){}
+        try { window.dispatchEvent(new Event('CookiebotOnAccept')); } catch(e){}
+      }
+
+      function setConsent(state){
+        var data = {
+          marketing: !!state.marketing,
+          statistics: !!state.statistics,
+          preferences: !!state.preferences,
+          ts: Date.now()
+        };
+        try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+        window.Cookiebot.consent.marketing = data.marketing;
+        window.Cookiebot.consent.statistics = data.statistics;
+        window.Cookiebot.consent.preferences = data.preferences;
+        fireReady();
+        var b = document.getElementById('apk-consent-banner');
+        if (b) b.parentNode.removeChild(b);
+      }
+      window.apkConsent = { setConsent: setConsent, get: function(){ return window.Cookiebot.consent; } };
+
+      function buildBanner(){
+        var div = document.createElement('div');
+        div.id = 'apk-consent-banner';
+        div.setAttribute('role','dialog');
+        div.setAttribute('aria-label','Cookie-instellingen');
+        div.style.cssText = 'position:fixed;bottom:16px;left:16px;right:16px;max-width:520px;margin:0 auto;background:#05080c;color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:20px 22px;box-shadow:0 24px 64px rgba(0,0,0,0.5);font-family:Outfit,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:1.5;z-index:99999';
+        div.innerHTML = '<div style="font-weight:700;margin-bottom:8px;font-size:15px">Cookies & privacy</div>'
+          + '<div style="color:#9ca3af;margin-bottom:14px">We gebruiken cookies om de site te laten werken (noodzakelijk), gebruik te meten (statistieken) en advertenties te optimaliseren (marketing). Je kiest zelf.</div>'
+          + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+          + '<button id="apk-c-accept" style="background:#E8630A;color:#fff;border:0;padding:11px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;flex:1;min-width:140px">Accepteer alles</button>'
+          + '<button id="apk-c-reject" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:11px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;flex:1;min-width:140px">Alleen noodzakelijk</button>'
+          + '</div>'
+          + '<div style="margin-top:12px;font-size:12px;color:#6b7280"><a href="/privacy" style="color:#9ca3af;text-decoration:underline;text-underline-offset:2px">Privacybeleid</a></div>';
+        document.body.appendChild(div);
+        document.getElementById('apk-c-accept').onclick = function(){ setConsent({marketing:true, statistics:true, preferences:true}); };
+        document.getElementById('apk-c-reject').onclick = function(){ setConsent({marketing:false, statistics:false, preferences:false}); };
+      }
+
+      if (stored && typeof stored.marketing === 'boolean') {
+        // Already chose previously — fire ready immediately so pixels can decide
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', fireReady);
+        } else {
+          fireReady();
+        }
+      } else {
+        // No prior choice — show banner after small delay (lets page paint)
+        function show(){ setTimeout(buildBanner, BANNER_DELAY); }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', show);
+        } else {
+          show();
+        }
+      }
+    })();
+    </script>
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,7 +99,7 @@
     <title>Recruitment APK — Gratis Assessment | Recruitin</title>
 
     <!-- Preconnects for tracker perf (load fast after consent) -->
-    <link rel="preconnect" href="https://consent.cookiebot.com" crossorigin>
+    
     <link rel="dns-prefetch" href="https://connect.facebook.net">
     <link rel="dns-prefetch" href="https://snap.licdn.com">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">

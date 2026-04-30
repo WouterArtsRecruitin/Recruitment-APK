@@ -398,6 +398,103 @@ export function Assessment() {
           </div>
         </section>
 
+        {/* ── VOORBEELDRAPPORTEN ─────────────────────────────────────── */}
+        <section style={{ padding: '80px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="bb-eyebrow mb-4">Voorbeelden</p>
+              <h2 style={{ fontFamily: 'var(--font-h)', fontWeight: 800, fontSize: 'clamp(1.8rem, 3vw, 2.4rem)', marginBottom: '12px' }}>
+                Download een echt rapport
+              </h2>
+              <p style={{ color: 'var(--muted)', fontSize: '15px', maxWidth: '560px', margin: '0 auto', lineHeight: 1.6 }}>
+                4 voorbeeldrapporten &mdash; pak de organisatie die op jouw lijkt en zie wat je krijgt. PDF, 3 pagina&rsquo;s, geen email-gate.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { slug: 'tech-scaleup-20-80-fte', title: 'Tech-Scaleup', sub: '20-80 FTE', score: 47, tier: 'Groeier', color: 'var(--amber)', tag: 'Hoge groei, weinig structuur — kandidaten haken af op chaos.' },
+                { slug: 'bouwbedrijf-mkb-50-150-fte', title: 'Bouwbedrijf MKB', sub: '50-150 FTE', score: 52, tier: 'Groeier', color: 'var(--amber)', tag: 'Solide basis, maar tooling en data zijn de bottleneck.' },
+                { slug: 'industrie-maakbedrijf-200-plus-fte', title: 'Industrie / Maakbedrijf', sub: '200+ FTE', score: 63, tier: 'Groeier', color: 'var(--amber)', tag: 'Gevestigd maar verouderd — Talent Attraction lift nodig.' },
+                { slug: 'zorginstelling-500-plus-fte', title: 'Zorginstelling', sub: '500+ FTE', score: 71, tier: 'Professional', color: 'var(--green)', tag: 'Sterke processen — Talent Attraction in een 1-op-8 markt is laatste hiaat.' },
+              ].map((s, i) => (
+                <a
+                  key={i}
+                  href={`/samples/${s.slug}.pdf`}
+                  download
+                  data-sample={s.slug}
+                  data-score={s.score}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      const w = window as unknown as { gtag?: (...args: unknown[]) => void; fbq?: (...args: unknown[]) => void };
+                      if (typeof w.gtag === 'function') {
+                        w.gtag('event', 'sample_pdf_download', { event_category: 'engagement', event_label: s.slug, sample_score: s.score });
+                      }
+                      if (typeof w.fbq === 'function') {
+                        w.fbq('trackCustom', 'SamplePDFDownload', { slug: s.slug, score: s.score });
+                      }
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    textDecoration: 'none',
+                    color: 'var(--fg)',
+                    transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.borderColor = 'rgba(9,174,221,0.4)';
+                    e.currentTarget.style.boxShadow = '0 10px 32px rgba(9,174,221,0.18)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = '';
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.boxShadow = '';
+                  }}
+                >
+                  <div style={{ fontFamily: 'var(--font-m)', fontSize: '10px', color: 'var(--primary)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                    Sample {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-h)', fontWeight: 800, fontSize: '17px', marginBottom: '2px', lineHeight: 1.2 }}>
+                    {s.title}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px' }}>
+                    {s.sub}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'var(--bg-up)', borderRadius: '8px', marginBottom: '14px' }}>
+                    <div style={{ fontFamily: 'var(--font-h)', fontSize: '28px', fontWeight: 800, color: s.color, lineHeight: 1 }}>
+                      {s.score}
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1.3 }}>
+                      Score / 100<br />
+                      <span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--fg)', fontWeight: 700 }}>{s.tier}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '14px', flexGrow: 1 }}>
+                    {s.tag}
+                  </div>
+                  <div
+                    className="bb-btn bb-btn-primary"
+                    style={{ fontSize: '13px', padding: '10px 14px', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 14px rgba(9,174,221,0.25)' }}
+                  >
+                    Download PDF
+                    <span style={{ fontSize: '12px' }}>↓</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '28px', fontSize: '13px', color: 'var(--muted)' }}>
+              Geen email vereist &middot; <strong style={{ color: 'var(--fg)' }}>direct downloaden</strong> &middot; jouw eigen APK in 5 minuten
+            </div>
+          </div>
+        </section>
+
         {/* ── FINAL CTA ──────────────────────────────────────────────── */}
         <section style={{ padding: '80px 24px', background: 'var(--bg)', textAlign: 'center' }}>
           <div className="max-w-2xl mx-auto">

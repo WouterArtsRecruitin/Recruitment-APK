@@ -1,0 +1,68 @@
+{
+  "score": 52,
+  "scorePercent": 52,
+  "categories": [
+    {"name": "Processen", "score": 14, "maxScore": 25, "percent": 56, "questionCount": 5},
+    {"name": "Technologie", "score": 9, "maxScore": 25, "percent": 36, "questionCount": 4},
+    {"name": "Talent Attraction", "score": 16, "maxScore": 25, "percent": 64, "questionCount": 8},
+    {"name": "Data & Analytics", "score": 13, "maxScore": 25, "percent": 52, "questionCount": 12}
+  ],
+  "individualScores": {
+    "1": 7, "2": 3, "3": 7, "4": 0, "5": 7, "6": 3, "7": 10, "8": 7, "9": 7, "10": 3,
+    "11": 0, "12": 7, "13": 3, "14": 7, "15": 7, "16": 7, "17": 10, "18": 7, "19": 3, "20": 3,
+    "21": 7, "22": 0, "23": 0, "24": 7, "25": 7, "26": 7, "27": 0, "28": 7, "29": 3
+  },
+  "ai_analysis": {
+    "executive_summary": "Bouwbedrijf scoort gemiddeld op recruitment maturity (52/100) — typisch voor het MKB-segment in de bouw. Sterk in employer branding en interne doorgroei (Talent 64%), maar Technologie blijft achter (36%). De krapte in vakkrachten dwingt tot een professionaliseringsslag: zonder ATS, data-tracking en gestructureerde candidate experience verlies je mensen aan grotere concurrenten. Eerste prioriteit: digitaliseer het recruitment proces.",
+    "category_insights": {
+      "Processen": {
+        "strengths": "Gestructureerde samenwerking tussen HR en uitvoerders, en evaluatie-momenten zijn aanwezig. Documentatie van het proces is werkbaar voor het volume aan vacatures.",
+        "improvements": "Doorlooptijd is te lang (gemiddeld 8 weken) — implementeer een 30-dagen target. Gebruik een lean-canvas voor recruitment om bottlenecks zichtbaar te maken.",
+        "impact": "Doorlooptijd -40%, 4 weken sneller invullen = €18.000 minder productieverlies per vacature in de bouw"
+      },
+      "Technologie": {
+        "strengths": "Email + Excel-tracking werkt voor het huidige volume. Geen complete tech-debt.",
+        "improvements": "Geen ATS = elke nieuwe vacature begint vanaf nul. Kies tussen Recruitee, Homerun of HRSelect voor MKB-bouw. Voeg WhatsApp Business toe als kandidaat-kanaal — aannemers willen niet bellen.",
+        "impact": "ATS bespaart 6-8 uur HR-werk per vacature, candidate response-tijd van 4 dagen → 4 uur"
+      },
+      "Talent Attraction": {
+        "strengths": "Sterk employer brand verhaal — 'Generaties bouwen' positionering werkt. Active referral programme met €500 bonus levert 25-30% van de instroom.",
+        "improvements": "Geen actieve LinkedIn outreach naar passieve uitvoerders en werkvoorbereiders. Diversiteit/inclusie ontbreekt strategisch — je vist in een te kleine vijver.",
+        "impact": "+3-5 hires/jaar uit passieve pool, totaal recruitment cost -22%"
+      },
+      "Data & Analytics": {
+        "strengths": "Maandelijkse review met directie wordt gehouden. Sollicitatieaantallen worden bijgehouden.",
+        "improvements": "Geen time-to-hire, cost-per-hire of source-of-hire metrics. Geen kandidaat-feedback systeem na afwijzing — je verspeelt employer brand bij iedere afwijzing.",
+        "impact": "Datadriven besluitvorming = 30% beter budget allocation, lagere bureau-kosten"
+      }
+    },
+    "top_strengths": [
+      "Employer branding via 'Generaties bouwen' verhaal — onderscheidend voor MKB-bouw",
+      "Referral programma actief en effectief (25-30% instroom)",
+      "Goede samenwerking HR–uitvoerders, korte communicatielijnen"
+    ],
+    "weakest_points": [
+      "Geen ATS — elke vacature start vanaf nul, geen tracking",
+      "Doorlooptijd gemiddeld 8 weken — kandidaten haken af",
+      "Geen recruitment KPI's: time-to-hire, cost-per-hire, source-of-hire ontbreken"
+    ],
+    "action_plan_30": [
+      "Implementeer een lichte ATS (Homerun €99/maand) en migreer 5 actieve vacatures — bespaart 6 uur/week aan handmatig werk en geeft direct overzicht.",
+      "Voer een doorlooptijd-target in van 30 dagen per vacature, met wekelijkse review op stuck-cases — concurrenten sluiten in 3-4 weken, jullie nu in 8.",
+      "Activeer WhatsApp Business als kandidaat-kanaal voor uitvoerders en werkvoorbereiders — response-tijd van 4 dagen naar minder dan 4 uur."
+    ],
+    "action_plan_60": [
+      "Bouw een passieve LinkedIn outreach-stroom op via Recruitin: 30 InMails/maand naar uitvoerders bij grote concurrenten — verwacht 2-3 hires uit deze pool.",
+      "Implementeer een gestructureerd onboarding-programma met 30/60/90-day check-ins — verlaagt 6-maands uitval van 18% naar onder 8%.",
+      "Stel KPI-dashboard op (time-to-hire, cost-per-hire, source-of-hire) — review maandelijks met directie."
+    ],
+    "action_plan_90": [
+      "Lanceer een diversiteit-campagne gericht op vrouwelijke kaderleden in de bouw (huidige bezetting < 5%) — bredere talentpool, beter teambuilding-effect.",
+      "Voer kandidaat-feedback survey in (NPS) na elk traject — gebruik feedback om vacatureteksten en proces-touchpoints te verbeteren."
+    ],
+    "roi_estimate": "€55.000 - €95.000",
+    "roi_explanation": "Productiviteitswinst door snellere invulling (€18k/vacature × 4 vacatures = €72k) plus bureau-besparing en lagere uitval.",
+    "biggest_opportunity": "Technologie",
+    "opportunity_hook": "Jullie verliezen elk kwartaal 1-2 hires aan concurrenten met snellere processen — bij €18.000 productieverlies per onvervulde uitvoerder is dat €72.000 cash dat aan recruitment-tools een fractie kost."
+  }
+}

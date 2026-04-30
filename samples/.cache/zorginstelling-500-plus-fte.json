@@ -1,0 +1,68 @@
+{
+  "score": 71,
+  "scorePercent": 71,
+  "categories": [
+    {"name": "Processen", "score": 19, "maxScore": 25, "percent": 76, "questionCount": 5},
+    {"name": "Technologie", "score": 18, "maxScore": 25, "percent": 72, "questionCount": 4},
+    {"name": "Talent Attraction", "score": 16, "maxScore": 25, "percent": 64, "questionCount": 8},
+    {"name": "Data & Analytics", "score": 18, "maxScore": 25, "percent": 72, "questionCount": 12}
+  ],
+  "individualScores": {
+    "1": 7, "2": 7, "3": 10, "4": 10, "5": 10, "6": 7, "7": 7, "8": 10, "9": 7, "10": 7,
+    "11": 7, "12": 7, "13": 10, "14": 7, "15": 7, "16": 7, "17": 3, "18": 7, "19": 10, "20": 7,
+    "21": 7, "22": 7, "23": 10, "24": 7, "25": 3, "26": 7, "27": 10, "28": 7, "29": 7
+  },
+  "ai_analysis": {
+    "executive_summary": "Zorginstelling toont Professional-niveau recruitment maturity (71/100) — opvallend hoog voor de sector waar veel zorgorganisaties achterblijven. Sterke processen (76%), moderne tooling (72%), data-driven (72%). Talent Attraction (64%) is het laatste hiaat: te traditioneel in een markt waar 1 op de 8 zorgvacatures onvervuld blijft. De compliance-druk (Wzd, IGJ-toetsen) is goed afgedekt; nu is het tijd om de werving zelf te professionaliseren in een markt waar je niet langer de keuze hebt. Eerste prioriteit: agressieve talent-acquisitie buiten de gangbare kanalen.",
+    "category_insights": {
+      "Processen": {
+        "strengths": "Strakke processen verfijnd over jaren — VOG-checks, BIG-registratie validatie, en certificering-tracking zijn waterdicht. Onboarding-traject duurt 6 weken en bevat e-learning, schaduwlopen en mentorschap. Reactiesnelheid binnen 48u op alle sollicitaties.",
+        "improvements": "Doorlooptijd voor verpleegkundigen en specialistische zorg gemiddeld 12 weken — te lang voor de huidige markt. IC-verpleegkundigen vinden binnen 4 weken een nieuwe werkgever, jullie zijn dan al te laat.",
+        "impact": "Doorlooptijd 12 → 6 weken = +12-18 verpleegkundigen/jaar extra ingestroomd, €240k+ inzet-uren behouden"
+      },
+      "Technologie": {
+        "strengths": "Modern ATS (gekoppeld aan AFAS HR) draait stabiel. Video-interviews voor regio-overstijgende kandidaten. E-learning platform geïntegreerd in onboarding. Mobile-first applicatieformulier werkt snel.",
+        "improvements": "Geen AI-voorscreening op verpleegkundigen-CV's (BIG-nummer validatie + ervaringsmatching) — nu handmatig, kost recruiter 4u/dag. Geen WhatsApp-flow voor jonge zorgmedewerkers (mbo-VPK kandidaten).",
+        "impact": "AI-voorscreening + WhatsApp = 6u/dag terug per recruiter, sneller contact met jonge instroom"
+      },
+      "Talent Attraction": {
+        "strengths": "Sterke compliance-narratief (Wzd, IGJ-rapporten beschikbaar) wekt vertrouwen bij ervaren zorgprofessionals. Solide partnerschap met regionale ROC's voor mbo-instroom. Werving via Indeed, Nationale Vacaturebank en Werken in de Zorg loopt.",
+        "improvements": "Geen referral-programma — verpleegkundigen kennen elkaar, dit is een gemiste kans van 30-40% van potentiële instroom. LinkedIn-outreach naar passieve specialisten ontbreekt. Diversiteit (mannelijke verpleegkundigen, biculturele zorgprofessionals) niet strategisch aangepakt. Social media marketing zwak.",
+        "impact": "Refer + LinkedIn + diversiteit = +15-20 hires/jaar uit zelden-bevisten doelgroepen"
+      },
+      "Data & Analytics": {
+        "strengths": "Time-to-hire, cost-per-hire en source-of-hire worden maandelijks gerapporteerd aan RvB. Salary benchmarking via ZorgmarktNL actueel. Kandidaat-feedback survey draait 2x/jaar (NPS = 38). Externe partners worden jaarlijks geëvalueerd op kwaliteit/kosten.",
+        "improvements": "Quality-of-hire (1-jaars retentie + manager-evaluatie) niet structureel gemeten. Geen predictive analytics op uitval-risico (zou nu 1 op 5 voorspelbaar zijn).",
+        "impact": "Quality-of-hire metric + uitval-predictie voorkomt 8-12 vroege exits/jaar, €280-420k aan herwerving en inwerkkosten"
+      }
+    },
+    "top_strengths": [
+      "Compliance-pijler waterdicht — VOG, BIG, IGJ-rapportages volledig gedocumenteerd",
+      "Modern ATS met AFAS-koppeling, mobile-first applicaties, video-interviews",
+      "Data-rapportages naar RvB maandelijks — recruitment is strategisch onderwerp"
+    ],
+    "weakest_points": [
+      "Geen referral-programma — zorgprofessionals kennen elkaar, je laat 30-40% liggen",
+      "Doorlooptijd 12 weken voor verpleegkundigen — markt is in 4 weken weg",
+      "Geen LinkedIn-outreach naar passieve specialisten en mannelijke VPK"
+    ],
+    "action_plan_30": [
+      "Lanceer een 'Wij zijn collega's' referral-programma: €1.500 bonus voor verpleegkundigen, €750 voor verzorgenden, €3.000 voor specialistische zorg (IC, OK, anesthesie). Communiceer in alle teamoverleg + intranet kick-off. Verwacht: eerste 4-6 referral-hires binnen 8 weken.",
+      "Zet in op 'Express Track' voor schaarse rollen (IC, OK, geriatrie): 1 sollicitatiegesprek + skills-assessment + besluit binnen 7 dagen. Doorlooptijd 12 → 2 weken voor deze categorie.",
+      "Activeer LinkedIn Recruiter en richt op passieve IC/OK-verpleegkundigen in regio's binnen 30 minuten reisafstand. 30 InMails/week, 12% reply-rate target."
+    ],
+    "action_plan_60": [
+      "Implementeer AI-voorscreening (HireVue of Phenom) op verpleegkundigen-CV's: BIG-validatie, ervaringsmatching, knockout-vragen. Bespaart 6u/dag/recruiter.",
+      "Lanceer een 'Mannen in de Zorg' campagne via LinkedIn + ROC-partnerships: video-content met mannelijke VPK's die hun verhaal vertellen. Verbreedt pool, verbetert teamcompositie.",
+      "Voeg quality-of-hire metric toe (1-jaars retentie + manager-rating) en bouw uitval-predictie model met HR-data: salary-bandbreedte, regio, ervaring, certificering, leidinggevende. Pre-empt 60-70% van vroege exits."
+    ],
+    "action_plan_90": [
+      "Bouw een 'Zorgprofessional Community' op LinkedIn/eigen platform: maandelijkse webinars over vakontwikkeling, Q&A met specialisten, intervisiekringen. Pijplijn van 200+ warme leads voor 18-maands horizon.",
+      "Start strategische werving in EU-zorgmarkt (Spanje, Portugal, Duitsland): partnership met TalentBeyondBorders voor BIG-erkenning + Nederlands-cursussen. Verbreedt pool met 60+ specialistische verpleegkundigen/jaar."
+    ],
+    "roi_estimate": "€280.000 - €450.000",
+    "roi_explanation": "Behoud van 12-18 extra verpleegkundigen door snellere werving (€240k+ aan inzet-uren) plus voorkomen van vroege exits (€280-420k aan inwerkkosten en herwerving).",
+    "biggest_opportunity": "Talent Attraction",
+    "opportunity_hook": "Jullie zijn al Professional-tier — maar elke onvervulde IC-vacature kost €50.000/maand aan ZZP-inhuur. Bij 4 IC-vacatures kost één maand vertraging meer dan een complete recruitment-transformatie."
+  }
+}

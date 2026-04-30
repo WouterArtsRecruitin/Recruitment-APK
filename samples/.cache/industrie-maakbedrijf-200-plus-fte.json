@@ -1,0 +1,68 @@
+{
+  "score": 63,
+  "scorePercent": 63,
+  "categories": [
+    {"name": "Processen", "score": 18, "maxScore": 25, "percent": 72, "questionCount": 5},
+    {"name": "Technologie", "score": 11, "maxScore": 25, "percent": 44, "questionCount": 4},
+    {"name": "Talent Attraction", "score": 14, "maxScore": 25, "percent": 56, "questionCount": 8},
+    {"name": "Data & Analytics", "score": 20, "maxScore": 25, "percent": 80, "questionCount": 12}
+  ],
+  "individualScores": {
+    "1": 10, "2": 7, "3": 10, "4": 3, "5": 7, "6": 7, "7": 7, "8": 10, "9": 7, "10": 10,
+    "11": 7, "12": 7, "13": 3, "14": 7, "15": 10, "16": 3, "17": 3, "18": 7, "19": 7, "20": 7,
+    "21": 3, "22": 3, "23": 7, "24": 10, "25": 3, "26": 10, "27": 0, "28": 7, "29": 10
+  },
+  "ai_analysis": {
+    "executive_summary": "Industrieel maakbedrijf scoort solide (63/100, Groeier) met sterke processen (72%) en uitzonderlijke data-volwassenheid (80%) — dit is een georganiseerde HR-organisatie. Echter: Technologie (44%) hangt vast in het verleden (Excel + Outlook + papieren CV's) en Talent Attraction (56%) gebruikt te traditionele kanalen voor de huidige kandidaattekort-druk. Eerste prioriteit: digitaliseer de werving om de bestaande operationele excellence te ontsluiten.",
+    "category_insights": {
+      "Processen": {
+        "strengths": "Volledig gedocumenteerd recruitment-proces, kwartaalreviews met directie, 4-staps interview-protocol per categorie. Onboarding-programma is gestructureerd (90-day plan voor elke nieuwe medewerker). Reactiesnelheid binnen een week is industrie-standaard.",
+        "improvements": "Doorlooptijd is consistent maar te lang voor de huidige markt (gemiddeld 9 weken voor operators). Inkooptijd-stroke voor uitvoerders kan korter via parallelle interview-tracks i.p.v. sequentieel.",
+        "impact": "Doorlooptijd 9 → 5 weken = 4 weken eerder productie, €25.000 productie-output per FTE/maand"
+      },
+      "Technologie": {
+        "strengths": "Email-flow naar applicants is consistent. Excel-tracking is volledig en up-to-date. ICT-infrastructuur ondersteunt verandering.",
+        "improvements": "Geen ATS — al jaren vertrouwd op Excel + Outlook. Geen video-interviewing voor afstandsselectie. Geen mobile-friendly applicatieformulieren — verliezen we operators die alleen via mobiel solliciteren. Geen integratie tussen werving en HRIS.",
+        "impact": "ATS + mobiel-flow brengt 40-50% meer kwalitatieve sollicitaties bij operators (LinkedIn benchmark voor industriële vacatures)"
+      },
+      "Talent Attraction": {
+        "strengths": "Stabiele instroom via traditionele kanalen (Indeed, lokale kranten, regionale beurzen). Solide reputatie in de regio als werkgever.",
+        "improvements": "Geen actieve LinkedIn-outreach naar passieve operators en planners. Diversiteit & inclusie ontbreekt strategisch — vrouwelijke ploegleiders < 8%, geen gerichte campagnes. Geen actief referral-programma terwijl 35-40% van vacatures via mond-tot-mond zou kunnen.",
+        "impact": "+8-12 hires/jaar uit passieve pool, lagere bureau-kosten van €25-35k"
+      },
+      "Data & Analytics": {
+        "strengths": "Sterke metrics-cultuur: time-to-hire, cost-per-hire, source-of-hire en kandidaat-feedback worden allemaal gemeten en maandelijks gereviewd. ROI-discussie staat op directie-agenda. Salary benchmarking is actueel. Externe partner-evaluaties worden gedaan.",
+        "improvements": "Quality-of-hire (90-dag retentie + performance score) wordt nog niet structureel gemeten. Geen predictive analytics op succes-profielen.",
+        "impact": "Quality-of-hire metric voorkomt 2-3 mis-hires per jaar = €60-90k besparing"
+      }
+    },
+    "top_strengths": [
+      "Industrie-leider in data-driven HR — 80% maturity score op Data & Analytics",
+      "Volledig gedocumenteerde processen met kwartaalreviews",
+      "Sterke onboarding (90-day plan) — uitval onder 10% in jaar 1"
+    ],
+    "weakest_points": [
+      "Geen ATS — Excel + Outlook in 2026 voor 50+ vacatures/jaar is risico",
+      "Geen LinkedIn-outreach naar passieve operators — laat geld liggen",
+      "Geen mobile-first applicatieflow — verlies van mobile-only kandidaten"
+    ],
+    "action_plan_30": [
+      "Selecteer en implementeer een ATS: Greenhouse, Recruitee of HRSelect — start met top-3 vacature-categorieën (operators, planners, engineers). Zorg voor mobile-first applicatieflow en HRIS-koppeling. Verwacht resultaat: 40% meer kwalitatieve sollicitaties binnen 60 dagen.",
+      "Activeer LinkedIn Recruiter (1 seat) en train senior recruiter op InMail-outreach naar passieve planners en ploegleiders. Doel: 25 InMails/week, 10% reply-rate, 2-3 hires uit deze pool in Q1.",
+      "Implementeer parallelle interview-tracks voor operators (techniek-test + culture-fit gesprek tegelijk i.p.v. sequentieel) — verkort doorlooptijd van 9 → 5 weken."
+    ],
+    "action_plan_60": [
+      "Lanceer een 'Industrie Refer-A-Friend' programma met €1.000 bonus voor operators en €2.000 voor specialistische rollen. Verwacht 5-7 hires uit eigen netwerk in eerste 6 maanden.",
+      "Voeg quality-of-hire metric toe aan dashboard: 90-dag retentie + manager-rating na 6 maanden. Gebruik om kanalen te kalibreren.",
+      "Start een vrouwelijke-ploegleiders campagne via LinkedIn ads + partnership met Vrouw & Veerkracht NL. Doel: 3 vrouwelijke hires in jaar 1, baseline voor diverser teamcultuur."
+    ],
+    "action_plan_90": [
+      "Implementeer video-interviewing (Hireflix of HireVue) voor eerste-ronde operators uit verre regio's — verbreedt pool met 60%, bespaart 4u/kandidaat.",
+      "Bouw een talent pool community voor schoolverlaters (mbo-bouw, mbo-techniek): kwartaal events, summer internships. Pijplijn voor 5-jaars-horizon."
+    ],
+    "roi_estimate": "€95.000 - €165.000",
+    "roi_explanation": "Doorlooptijd-besparing op 30 vacatures (€100k+), bureau-kostenbesparing (€30-40k via referrals), voorkomen mis-hires (€60-90k).",
+    "biggest_opportunity": "Technologie",
+    "opportunity_hook": "Jullie processen en data zijn industrie-leidend — maar zonder ATS en mobile-flow loopt 40% van de operators die digitaal solliciteren langs jullie heen. Concurrenten met inferieure processen winnen door tooling alleen."
+  }
+}

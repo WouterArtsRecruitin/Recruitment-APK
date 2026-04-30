@@ -1,0 +1,68 @@
+{
+  "score": 47,
+  "scorePercent": 47,
+  "categories": [
+    {"name": "Processen", "score": 8, "maxScore": 25, "percent": 32, "questionCount": 5},
+    {"name": "Technologie", "score": 18, "maxScore": 25, "percent": 72, "questionCount": 4},
+    {"name": "Talent Attraction", "score": 13, "maxScore": 25, "percent": 52, "questionCount": 8},
+    {"name": "Data & Analytics", "score": 8, "maxScore": 25, "percent": 32, "questionCount": 12}
+  ],
+  "individualScores": {
+    "1": 0, "2": 3, "3": 3, "4": 10, "5": 3, "6": 3, "7": 7, "8": 0, "9": 7, "10": 0,
+    "11": 3, "12": 7, "13": 3, "14": 7, "15": 7, "16": 10, "17": 3, "18": 3, "19": 7, "20": 0,
+    "21": 3, "22": 7, "23": 0, "24": 3, "25": 10, "26": 3, "27": 7, "28": 0, "29": 3
+  },
+  "ai_analysis": {
+    "executive_summary": "Tech-scaleup is technologisch gezien volwassen (Technologie 72%) — moderne ATS, video-screening, automated assessments staan al — maar Processen (32%) en Data (32%) hinken hier ver achter. Klassiek scaleup-symptoom: tools vóór proces, hires-by-impulse zonder framework. Bij groei van 20→80 FTE explodeert deze schuld. Eerste prioriteit: leg een schaalbaar proces neer voordat je verder hires.",
+    "category_insights": {
+      "Processen": {
+        "strengths": "Aanwezigheid van moderne tools is een gunstige uitgangspositie — proces-implementatie kan op het tooling-fundament.",
+        "improvements": "Geen gedocumenteerd recruitment-proces. Doorlooptijd schiet alle kanten op (2 dagen voor sommige rollen, 12 weken voor andere). Hiring managers maken eigen interpretaties, geen consistent kader.",
+        "impact": "Een schaalbaar proces (Greenhouse-style scorecard + 4-stappen funnel) bespaart 8 uur/week founder-tijd, verhoogt kwaliteit van hires meetbaar"
+      },
+      "Technologie": {
+        "strengths": "Sterke tech-stack: ATS in gebruik, video-interviewing voor remote screening, automated skill-assessments via Codility/HackerRank. Dit alleen al zet jullie in de top 30% van NL scaleups.",
+        "improvements": "Tools worden onder-benut. Workflows in ATS zijn niet ingericht, automation-opties (auto-rejects, scheduling) staan uit. Geen integratie tussen ATS en Slack voor real-time updates.",
+        "impact": "Volledige tooling-benutting verhoogt recruiter-productiviteit met 40-50% — meer hires zonder extra headcount"
+      },
+      "Talent Attraction": {
+        "strengths": "Strong tech-employer brand op LinkedIn en GitHub — engineers herkennen jullie. Social media strategie geavanceerd. Marketing snel en wendbaar.",
+        "improvements": "Geen referral-programma — terwijl in tech-scaleups dit 40-50% van de instroom kan zijn. Diversiteit & Inclusie ondergeschoven (alleen Engelstalige vacatureteksten exclude veel kandidaten). Geen actieve talent pool community.",
+        "impact": "Goed referral-programme = 8-12 extra hires/jaar à €0 vs. €15-20k via bureau"
+      },
+      "Data & Analytics": {
+        "strengths": "Een paar metrics worden bijgehouden (sollicitanten per vacature). Beschikt over de tools om data te trekken.",
+        "improvements": "Geen time-to-hire, cost-per-hire, quality-of-hire of source-of-hire dashboard. Geen ROI-meting, geen kandidaat-feedback loop. Beslissingen op buikgevoel — onhoudbaar bij schaal.",
+        "impact": "Data-driven recruitment voorkomt €60-100k aan slechte hires per jaar bij 20+ hires"
+      }
+    },
+    "top_strengths": [
+      "Top-tier tech-stack: ATS, video-screening, skill-assessments staan",
+      "Engineering employer brand op LinkedIn/GitHub: engineers willen praten",
+      "Snel en wendbaar — beslissingen kunnen binnen 24u"
+    ],
+    "weakest_points": [
+      "Geen gedocumenteerd recruitment-proces — chaos schaalt niet mee",
+      "Geen referral-programma terwijl scaleups daar 40%+ instroom uit halen",
+      "Geen recruitment data — beslissingen op buikgevoel, slechte hires kosten €60-100k"
+    ],
+    "action_plan_30": [
+      "Document een 4-stappen funnel met Greenhouse-style scorecards per rol — eerst voor engineering-vacatures, daarna sales en G&A. Verwacht resultaat: 30% snellere hire-decisions, betere kalibratie tussen interviewers.",
+      "Lanceer een referral-programma met €1.500 bonus voor senior engineering hires — start met internal kick-off all-hands. Verwacht resultaat: eerste 2 referral-hires binnen 8 weken.",
+      "Bouw een minimal recruitment-dashboard in Notion/Coda: time-to-hire, cost-per-hire, source-of-hire per kanaal. Wekelijkse review met founders — bring data into the room."
+    ],
+    "action_plan_60": [
+      "Configureer ATS workflows volledig: auto-reject na 14 dagen no-response, scheduling-bot voor founder-interviews, Slack-integratie voor real-time updates. Bespaart 6 uur/week recruiter-tijd.",
+      "Implementeer 'structured interviews' framework: zelfde 5 vragen per rol, blind scorecards, post-interview-debrief binnen 24u. Cuts bias en verhoogt quality-of-hire meetbaar.",
+      "Vertaal alle vacatureteksten naar Nederlands EN Engels (bilingual). Bouw aparte landing voor Spanish/Italian/Eastern-European engineers — verbreedt pool met 40%."
+    ],
+    "action_plan_90": [
+      "Start een 'Engineering Talent Community' op Discord/Slack — events, tech-talks, open-source contribs. Bouwt warm pipeline van 100+ kandidaten waar je 12 maanden uit hires haalt.",
+      "Voer een quarterly recruitment retro in met founders: wat hire-strategie werkt? Welke kanalen leveren slechtste hires? Pas budget per quarter aan op basis van source-of-hire data."
+    ],
+    "roi_estimate": "€85.000 - €145.000",
+    "roi_explanation": "Voorkomen van 1-2 slechte hires (€60-100k) plus 6-8 referral-hires zonder bureau-fee (€90-160k besparing) min implementatie-kosten.",
+    "biggest_opportunity": "Processen",
+    "opportunity_hook": "Bij 20→80 FTE schaal je het beste team in NL — of je schaalt de chaos. Eén bad hire kost €60k cash + 6 maanden team-momentum. Jullie hebben de tools; nu het proces."
+  }
+}

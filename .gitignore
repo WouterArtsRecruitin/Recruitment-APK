@@ -47,3 +47,7 @@ config.js
 *.key
 *.pem
 .netlify/
+
+# Python (sample-rapport prerender script)
+__pycache__/
+*.pyc

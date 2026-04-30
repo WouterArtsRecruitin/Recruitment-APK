@@ -1,0 +1,283 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Recruitment APK — Voorbeeld</title><style>
+@page { size: A4 portrait; margin: 0 }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+* { box-sizing: border-box }
+html, body { margin: 0; padding: 0; background: #fff; font-family: 'Inter', system-ui, sans-serif; font-size: 10pt; line-height: 1.55; color: #05080c; -webkit-print-color-adjust: exact; print-color-adjust: exact }
+
+.page {
+  width: 210mm; height: 297mm;
+  padding: 16mm 18mm 16mm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  page-break-after: always;
+  break-after: page;
+}
+.page:last-child { page-break-after: auto; break-after: auto }
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 8pt;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #6B7280;
+  border-bottom: 1px solid #E5E7EB;
+  padding-bottom: 6pt; margin-bottom: 12pt;
+}
+.page-header .brand { color: #05080c; font-weight: 700 }
+.page-header .brand .dot { display: inline-block; width: 6pt; height: 6pt; border-radius: 50%; background: #09aedd; margin-right: 5pt; vertical-align: 1pt }
+
+.page-footer {
+  position: absolute; bottom: 10mm; left: 18mm; right: 18mm;
+  display: flex; justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace; font-size: 8pt;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #6B7280;
+  border-top: 1px solid #E5E7EB; padding-top: 8pt;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 800; letter-spacing: -0.02em; color: #05080c }
+p { margin: 0 0 8pt }
+
+.module-label { font-family: 'JetBrains Mono', monospace; font-size: 9pt; font-weight: 700; color: #09aedd; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4pt }
+
+/* KPI grid via TABLE (Chromium-PDF predictabel) */
+.kpi-grid { width: 100%; border-collapse: separate; border-spacing: 8pt; table-layout: fixed; margin: 14pt 0 }
+.kpi-grid td { background: #F5F5F5; padding: 18pt 8pt; text-align: center; border-radius: 8pt; vertical-align: middle }
+.kpi-grid .v { font-size: 22pt; font-weight: 800; color: #05080c; line-height: 1.05 }
+.kpi-grid .v.accent { color: #09aedd }
+.kpi-grid .v.green { color: #059669 }
+.kpi-grid .v.amber { color: #E8630A }
+.kpi-grid .v.red { color: #dc2626 }
+.kpi-grid .l { font-size: 8pt; color: #6B7280; margin-top: 6pt; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600 }
+
+.callout { padding: 12pt 16pt; border-radius: 6pt; margin: 10pt 0; font-size: 10pt; line-height: 1.55 }
+.callout--accent { background: rgba(9,174,221,0.08); border-left: 3pt solid #09aedd }
+.callout--ink { background: #05080c; color: #fff }
+.callout--green { background: #F0FDF4; border-left: 3pt solid #059669 }
+.callout--red { background: #FEF2F2; border-left: 3pt solid #dc2626 }
+
+/* COVER ─────────────────────────── */
+.cover { position: relative; height: 100% }
+.cover .brand-strip { background: #09aedd; color: #05080c; padding: 7pt 16pt; margin: -16mm -18mm 0; font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; display: table; width: calc(100% + 36mm) }
+.cover .brand-strip > div { display: table-cell; vertical-align: middle }
+.cover .brand-strip .right { text-align: right }
+.cover .top-strip { display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 8pt; letter-spacing: 0.15em; text-transform: uppercase; color: #6B7280; margin-top: 12pt }
+.cover .top-strip .brand { color: #05080c; font-weight: 700; font-size: 11pt }
+.cover .top-strip .brand .dot { display: inline-block; width: 8pt; height: 8pt; border-radius: 50%; background: #09aedd; margin-right: 7pt; vertical-align: 1pt }
+.cover .lead-meta { font-family: 'JetBrains Mono', monospace; font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #09aedd; font-weight: 700; margin: 22pt 0 6pt }
+.cover h1 { font-weight: 900; font-size: 60pt; line-height: 0.92; letter-spacing: -0.04em; margin: 0 0 8pt; max-width: 88% }
+.cover h1 .accent { color: #09aedd }
+.cover .deck { font-size: 12pt; line-height: 1.5; color: #6B7280; max-width: 88%; margin: 0 0 14pt }
+.cover .score-row { display: table; width: 100%; margin: 8pt 0; background: #F5F5F5; border-radius: 8pt; padding: 14pt }
+.cover .score-row > div { display: table-cell; vertical-align: middle }
+.cover .score-row .ring { width: 130pt; padding-right: 16pt }
+.cover .score-row .summary { font-size: 10.5pt; line-height: 1.55 }
+.cover .summary strong { color: #05080c }
+.cover .summary .h-label { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; color: #09aedd; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6pt; display: block }
+.cover .tier-pill { display: inline-block; padding: 3pt 10pt; border-radius: 100pt; font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6pt }
+
+.cover .preview-grid { display: table; width: 100%; border-collapse: separate; border-spacing: 8pt; table-layout: fixed; margin-top: 12pt }
+.cover .preview-grid > div { display: table-cell; padding: 10pt 10pt 12pt; border: 1.5pt solid #09aedd; border-radius: 8pt; vertical-align: top; background: #fff }
+.cover .preview-grid .num { font-family: 'JetBrains Mono', monospace; font-size: 9pt; font-weight: 700; color: #09aedd; letter-spacing: 0.15em; text-transform: uppercase }
+.cover .preview-grid .v { font-size: 12pt; font-weight: 800; color: #05080c; letter-spacing: -0.015em; line-height: 1.2; margin: 4pt 0 2pt; word-wrap: break-word }
+.cover .preview-grid .l { font-size: 8.5pt; color: #6B7280; line-height: 1.4 }
+.cover .preview-label { font-family: 'JetBrains Mono', monospace; font-size: 9pt; font-weight: 700; color: #09aedd; letter-spacing: 0.15em; text-transform: uppercase; margin: 14pt 0 0; padding-top: 10pt; border-top: 1px solid #E5E7EB }
+.cover .footer-band { position: absolute; left: 0; right: 0; bottom: 0; border-top: 3pt solid #09aedd; padding-top: 10pt }
+.cover .footer-band .row { display: flex; justify-content: space-between; align-items: baseline; gap: 14pt }
+.cover .footer-band .left { font-size: 10pt; color: #05080c; white-space: nowrap }
+.cover .footer-band .left strong { color: #09aedd; font-weight: 700; letter-spacing: 0.02em }
+.cover .footer-band .right { font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: #6B7280; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap }
+
+/* HIGHLIGHTS PAGE ────────────────── */
+.highlight-block { padding: 8pt 12pt; border: 1px solid #E5E7EB; border-radius: 7pt; margin-bottom: 6pt; break-inside: avoid; page-break-inside: avoid }
+.highlight-block .h-label { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700; color: #09aedd; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 2pt }
+.highlight-block .h-title { font-size: 11pt; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 5pt }
+
+/* CTA BACK PAGE ──────────────────── */
+.cta-page { display: flex; flex-direction: column; height: 100%; align-items: center; text-align: center; padding-top: 6mm }
+.cta-page h2 { font-size: 24pt; line-height: 1.05; max-width: 80%; margin: 6pt 0 8pt; font-weight: 900; letter-spacing: -0.025em }
+.cta-page h2 .accent { color: #09aedd }
+.cta-page .deck { font-size: 11pt; color: #6B7280; max-width: 72%; line-height: 1.5; margin-bottom: 12pt }
+.locked-modules { width: 84%; margin: 4pt auto 14pt; border-top: 1px solid #E5E7EB }
+.locked-modules .row { display: table; width: 100%; padding: 4pt 0; border-bottom: 1px solid #E5E7EB }
+.locked-modules .row > div { display: table-cell; vertical-align: middle }
+.locked-modules .num { font-family: 'JetBrains Mono', monospace; font-size: 9pt; color: #09aedd; font-weight: 700; width: 36pt; letter-spacing: 0.1em }
+.locked-modules .name { font-size: 9.5pt; font-weight: 600; text-align: left }
+.locked-modules .lock { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: #6B7280; text-align: right; letter-spacing: 0.1em; text-transform: uppercase; width: 95pt }
+
+.usp-grid { display: table; width: 78%; margin: 6pt auto 14pt; border-spacing: 10pt 0 }
+.usp-grid > div { display: table-cell; padding: 12pt 8pt; background: #F5F5F5; border-radius: 6pt; text-align: center; vertical-align: middle }
+.usp-grid .v { font-size: 22pt; font-weight: 800; color: #09aedd; line-height: 1; letter-spacing: -0.02em }
+.usp-grid .l { font-size: 8pt; color: #6B7280; margin-top: 5pt; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600 }
+
+.cta-button { display: inline-block; background: #09aedd; color: #05080c; padding: 13pt 36pt; border-radius: 100pt; font-weight: 800; font-size: 12pt; text-decoration: none; box-shadow: 0 6pt 20pt rgba(9,174,221,0.25); margin-top: 2pt }
+.cta-page .url { font-family: 'JetBrains Mono', monospace; font-size: 9pt; color: #6B7280; letter-spacing: 0.05em; margin-top: 10pt }
+
+/* CATEGORY BAR ────────────────────── */
+.cat-row { margin: 1pt 0 }
+.cat-row .label-row { display: table; width: 100%; margin-bottom: 1pt }
+.cat-row .name { display: table-cell; font-size: 8.5pt; font-weight: 600; color: #05080c; vertical-align: middle }
+.cat-row .score { display: table-cell; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; vertical-align: middle }
+.cat-row .track { background: #F3F4F6; border-radius: 3pt; height: 4pt; overflow: hidden }
+.cat-row .fill { height: 4pt; border-radius: 3pt }
+
+/* ACTION ITEMS ──────────────────── */
+.action-list { margin: 0; padding: 0; list-style: none }
+.action-list li { display: table; width: 100%; padding: 3pt 0; border-bottom: 1px dashed #E5E7EB }
+.action-list li:last-child { border-bottom: 0 }
+.action-list .n { display: table-cell; width: 22pt; font-family: 'JetBrains Mono', monospace; font-size: 9pt; font-weight: 700; color: #09aedd; vertical-align: top; padding-top: 1pt }
+.action-list .t { display: table-cell; font-size: 8.5pt; line-height: 1.4; color: #05080c; vertical-align: top }
+
+/* TWO-COL STRENGTH/WEAKNESS ──────── */
+.sw-grid { display: table; width: 100%; border-spacing: 6pt 0 }
+.sw-grid > div { display: table-cell; vertical-align: top; width: 50%; padding: 7pt 9pt; border-radius: 6pt }
+.sw-grid .strengths { background: #ECFDF5; border-left: 3pt solid #059669 }
+.sw-grid .weaknesses { background: #FEF2F2; border-left: 3pt solid #dc2626 }
+.sw-grid .h-label { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4pt }
+.sw-grid .strengths .h-label { color: #059669 }
+.sw-grid .weaknesses .h-label { color: #dc2626 }
+.sw-grid .item { font-size: 8.5pt; line-height: 1.4; padding: 1pt 0 1pt 11pt; position: relative }
+.sw-grid .item:before { content: ''; position: absolute; left: 0; top: 6pt; width: 4pt; height: 4pt; border-radius: 50%; background: #05080c }
+.sw-grid .strengths .item:before { background: #059669 }
+.sw-grid .weaknesses .item:before { background: #dc2626 }
+
+/* OPPORTUNITY HOOK CALLOUT ───────── */
+.opp-hook { padding: 8pt 12pt; background: #05080c; color: #fff; border-radius: 7pt; margin: 6pt 0; font-size: 9pt; line-height: 1.45; border-left: 3pt solid #09aedd }
+.opp-hook .label { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; color: #09aedd; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3pt }
+
+/* Print color forcing */
+.kpi-grid td, .callout, .usp-grid > div, .cta-button, .highlight-block, .cat-row .fill, .sw-grid > div, .opp-hook { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+</style></head><body><section class="page cover">
+  <div class="brand-strip">
+    <div>Voorbeeldrapport &middot; Recruitment Maturity</div>
+    <div class="right">30 April 2026</div>
+  </div>
+  <div class="top-strip">
+    <span class="brand"><span class="dot"></span>recruitmentapk.nl</span>
+    <span>01 / 03</span>
+  </div>
+  <div class="lead-meta">Zorg Welzijn &middot; 500+ FTE &middot; Midden Nederland</div>
+  <h1>Recruitment<br><span class="accent">APK.</span></h1>
+  <p class="deck">Hoe volwassen is jullie wervingsproces? 29 vragen &middot; 4 categorieën &middot; vandaag in 3 pagina's. Volledig rapport: <strong>diepgaande analyse + 30/60/90 actieplan</strong>.</p>
+  <div class="score-row">
+    <div class="ring"><svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" stroke="#E5E7EB" stroke-width="9"/><circle cx="55" cy="55" r="44" fill="none" stroke="#059669" stroke-width="9" stroke-dasharray="196.3 276.5" stroke-linecap="round" transform="rotate(-90 55 55)"/><text x="55" y="50" text-anchor="middle" font-family="Arial" font-size="26" fill="#05080c" font-weight="700">71</text><text x="55" y="68" text-anchor="middle" font-family="Arial" font-size="10" fill="#6B7280">Score</text></svg></div>
+    <div class="summary">
+      <span class="h-label">Maturity Niveau</span>
+      <span class="tier-pill" style="background:#059669;color:#fff">Professional &middot; 71/100</span>
+      <div>Zorginstelling toont Professional-niveau recruitment maturity (71/100) — opvallend hoog voor de sector waar veel zorgorganisaties achterblijven. Sterke processen (76%), moderne tooling (72%), data-driven (72%). Talent Attraction (64%) is het laatste hiaat: te traditioneel in een markt waar 1 op de 8 zorgvacatures…</div>
+    </div>
+  </div>
+  <table class="kpi-grid"><tr><td><div class="v green">19/25</div><div class="l">Processen</div></td><td><div class="v green">18/25</div><div class="l">Technologie</div></td><td><div class="v amber">16/25</div><div class="l">Talent Attraction</div></td><td><div class="v green">18/25</div><div class="l">Data & Analytics</div></td></tr></table>
+  <div class="preview-label">Hoogtepunten op pagina 02 &rarr;</div>
+  <table class="preview-grid"><tr>
+    <td>
+      <div class="num">01 &middot; Sterkste punt</div>
+      <div class="v">Processen</div>
+      <div class="l">76% &middot; behoud dit</div>
+    </td>
+    <td>
+      <div class="num">02 &middot; Grootste kans</div>
+      <div class="v">Talent Attraction</div>
+      <div class="l">64% &middot; eerste prioriteit</div>
+    </td>
+    <td>
+      <div class="num">03 &middot; ROI-potentie</div>
+      <div class="v">€280.000 - €450.000</div>
+      <div class="l">verwachte besparing /jaar</div>
+    </td>
+  </tr></table>
+  <div class="footer-band">
+    <div class="row">
+      <div class="left"><strong>Voorbeeld Zorginstelling</strong> &middot; voorbeeld &middot; recruitin.nl</div>
+      <div class="right">Volledig rapport &rarr; pag. 03</div>
+    </div>
+  </div>
+</section>
+<section class="page">
+  <div class="page-header"><span class="brand"><span class="dot"></span>recruitmentapk.nl</span><span></span></div>
+  <div class="module-label" style="margin-bottom:2pt">Hoogtepunten</div>
+  <h2 style="font-size:18pt;margin-bottom:3pt;letter-spacing:-0.025em">Drie inzichten — visueel</h2>
+  <p style="font-size:9pt;color:#6B7280;margin-bottom:8pt">Categorie-scores, sterktes &amp; zwaktes, en eerste acties. Het volledige rapport gaat veel dieper.</p>
+  
+    <div class="highlight-block">
+      <div class="h-label">01 &middot; Score per categorie</div>
+      <div class="h-title">4 dimensies van recruitment maturity</div>
+      
+        <div class="cat-row">
+          <div class="label-row">
+            <div class="name">Processen <span style="color:#6B7280;font-weight:500">&middot; 19/25</span></div>
+            <div class="score" style="color:#059669">76%</div>
+          </div>
+          <div class="track"><div class="fill" style="width:76%;background:#059669"></div></div>
+        </div>
+        <div class="cat-row">
+          <div class="label-row">
+            <div class="name">Technologie <span style="color:#6B7280;font-weight:500">&middot; 18/25</span></div>
+            <div class="score" style="color:#059669">72%</div>
+          </div>
+          <div class="track"><div class="fill" style="width:72%;background:#059669"></div></div>
+        </div>
+        <div class="cat-row">
+          <div class="label-row">
+            <div class="name">Talent Attraction <span style="color:#6B7280;font-weight:500">&middot; 16/25</span></div>
+            <div class="score" style="color:#E8630A">64%</div>
+          </div>
+          <div class="track"><div class="fill" style="width:64%;background:#E8630A"></div></div>
+        </div>
+        <div class="cat-row">
+          <div class="label-row">
+            <div class="name">Data & Analytics <span style="color:#6B7280;font-weight:500">&middot; 18/25</span></div>
+            <div class="score" style="color:#059669">72%</div>
+          </div>
+          <div class="track"><div class="fill" style="width:72%;background:#059669"></div></div>
+        </div>
+    </div>
+  
+    <div class="highlight-block">
+      <div class="h-label">02 &middot; Sterkste &middot; zwakste</div>
+      <div class="h-title">Wat werkt — wat verdient aandacht</div>
+      <div class="sw-grid">
+        <div class="strengths">
+          <div class="h-label">Sterke punten</div>
+          <div class="item">Compliance-pijler waterdicht — VOG, BIG, IGJ-rapportages volledig gedocumenteerd</div><div class="item">Modern ATS met AFAS-koppeling, mobile-first applicaties, video-interviews</div><div class="item">Data-rapportages naar RvB maandelijks — recruitment is strategisch onderwerp</div>
+        </div>
+        <div class="weaknesses">
+          <div class="h-label">Verbeterpunten</div>
+          <div class="item">Geen referral-programma — zorgprofessionals kennen elkaar, je laat 30-40% liggen</div><div class="item">Doorlooptijd 12 weken voor verpleegkundigen — markt is in 4 weken weg</div><div class="item">Geen LinkedIn-outreach naar passieve specialisten en mannelijke VPK</div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="opp-hook">
+      <div class="label">Concrete impact</div>
+      Jullie zijn al Professional-tier — maar elke onvervulde IC-vacature kost €50.000/maand aan ZZP-inhuur. Bij 4 IC-vacatures kost één maand vertraging meer dan een complete recruitment-transformatie.
+    </div>
+  
+    <div class="highlight-block">
+      <div class="h-label">03 &middot; Quick wins &middot; eerste 30 dagen</div>
+      <div class="h-title">Wat doe je als eerste</div>
+      <ul class="action-list"><li><div class="n">01</div><div class="t">Lanceer een 'Wij zijn collega's' referral-programma: €1.500 bonus voor verpleegkundigen, €750 voor verzorgenden, €3.000 voor…</div></li><li><div class="n">02</div><div class="t">Zet in op 'Express Track' voor schaarse rollen (IC, OK, geriatrie): 1 sollicitatiegesprek + skills-assessment + besluit binnen 7 dagen.…</div></li><li><div class="n">03</div><div class="t">Activeer LinkedIn Recruiter en richt op passieve IC/OK-verpleegkundigen in regio's binnen 30 minuten reisafstand. 30 InMails/week, 12%…</div></li></ul>
+    </div>
+  <div class="page-footer"><span>Voorbeeld &middot; Recruitin B.V.</span><span>02 / 03</span></div>
+</section>
+<section class="page">
+  <div class="page-header"><span class="brand"><span class="dot"></span>recruitmentapk.nl</span><span></span></div>
+  <div class="cta-page">
+    <div class="module-label">Voor jouw eigen organisatie</div>
+    <h2>Wat krijg je in het<br><span class="accent">volledige rapport?</span></h2>
+    <p class="deck">Dit voorbeeld toont 3 hoogtepunten. Het volledige rapport heeft <strong>diepgaande analyse + 30/60/90 actieplan</strong> — hieronder de complete inhoud:</p>
+    <div class="locked-modules">
+      <div class="row"><div class="num">01</div><div class="name">Volledige score per 29 sub-vragen — exact welke processen scoren laag</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">02</div><div class="name">AI-analyse per categorie — sterktes, verbeterpunten + verwachte impact</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">03</div><div class="name">Sector-benchmark — hoe scoor je vs. concurrenten in jouw branche</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">04</div><div class="name">30/60/90-dagen actieplan — concreet, met tools en KPI's</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">05</div><div class="name">Strategische ROI-analyse — verwachte tijdwinst + besparing per jaar</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">06</div><div class="name">Personalised opportunity hook — wat is jouw #1 prioriteit</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">07</div><div class="name">8 concrete acties met tools, frameworks en deadlines</div><div class="lock">— in volledig rapport</div></div><div class="row"><div class="num">08</div><div class="name">Optioneel verbeterplan: 60-dagen begeleiding (€249) of strategiesessie</div><div class="lock">— in volledig rapport</div></div>
+    </div>
+    <div class="usp-grid">
+      <div><div class="v">29</div><div class="l">Vragen</div></div>
+      <div><div class="v">5min</div><div class="l">Doorlooptijd</div></div>
+      <div><div class="v">€0</div><div class="l">Gratis assessment</div></div>
+    </div>
+    <a class="cta-button" href="https://recruitmentapk.nl/?utm_source=sample-pdf&amp;utm_medium=pdf&amp;utm_campaign=cta_back">Start jouw assessment &rarr;</a>
+    <div style="font-size:10pt;color:#6B7280;margin-top:14pt">29 vragen &middot; 5 minuten &middot; rapport in je mailbox direct na voltooiing</div>
+  </div>
+  <div style="position:absolute;bottom:8mm;left:18mm;right:18mm;border-top:2pt solid #09aedd;padding-top:8pt;display:flex;justify-content:space-between;align-items:baseline;font-size:9pt">
+    <div style="color:#05080c"><strong style="color:#09aedd;font-weight:700">Recruitin B.V.</strong> &middot; warts@recruitin.nl &middot; 06 14 31 45 93 &middot; recruitmentapk.nl</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8pt;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase">03 / 03</div>
+  </div>
+</section></body></html>

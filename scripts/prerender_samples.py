@@ -6,9 +6,10 @@ Run lokaal:
     cd ~/projects/Recruitment-APK
     python3 scripts/prerender_samples.py
 
-Output: samples/<slug>.{html,pdf}
+Output: public/samples/<slug>.{html,pdf}  (Vite kopieert public/* naar dist/
+tijdens build; Vercel serveert ze als statische assets onder /samples/*)
 
-Gebruikt canned analyses uit samples/.cache/<slug>.json — geen Claude API spend.
+Source-of-truth: samples/.cache/<slug>.json (canned analyses — geen Claude API spend)
 """
 from __future__ import annotations
 
@@ -22,9 +23,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from apk_print_renderer import render_print_html
 
-OUT_DIR = REPO_ROOT / "samples"
+OUT_DIR = REPO_ROOT / "public" / "samples"
 CACHE_DIR = REPO_ROOT / "samples" / ".cache"
-OUT_DIR.mkdir(exist_ok=True)
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 SAMPLES = [
     {

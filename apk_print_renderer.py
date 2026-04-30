@@ -191,6 +191,12 @@ p { margin: 0 0 8pt }
 .action-list .n { display: table-cell; width: 22pt; font-family: 'JetBrains Mono', monospace; font-size: 9pt; font-weight: 700; color: """ + ACCENT + """; vertical-align: top; padding-top: 1pt }
 .action-list .t { display: table-cell; font-size: 8.5pt; line-height: 1.4; color: """ + INK + """; vertical-align: top }
 
+/* ACTION-LIST locked-teaser */
+.action-list li.locked { background: rgba(9,174,221,0.04) }
+.action-list li.locked .t { color: """ + MUTED + """; font-style: italic; opacity: 0.7 }
+.action-list li.locked .n { color: """ + ACCENT + """; opacity: 0.6 }
+.action-list li.locked .lock-tag { display: table-cell; vertical-align: middle; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; color: """ + ACCENT + """; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; padding-left: 8pt; width: 88pt }
+
 /* TWO-COL STRENGTH/WEAKNESS ──────── */
 .sw-grid { display: table; width: 100%; border-spacing: 6pt 0 }
 .sw-grid > div { display: table-cell; vertical-align: top; width: 50%; padding: 7pt 9pt; border-radius: 6pt }
@@ -412,13 +418,18 @@ def _page_highlights(analysis: dict) -> str:
         return text[:limit].rsplit(" ", 1)[0] + "…"
 
     actions_30 = (ai.get("action_plan_30") or [])[:3]
+    actions_60 = (ai.get("action_plan_60") or [])[:1]  # 1 locked teaser uit fase 60-dagen
     actions_html = "".join(
         f'<li><div class="n">{i+1:02d}</div><div class="t">{_short(item)}</div></li>'
         for i, item in enumerate(actions_30)
     )
+    actions_html += "".join(
+        f'<li class="locked"><div class="n">{i+4:02d}</div><div class="t">{_short(item, 110)}</div><div class="lock-tag">🔒 in volledig rapport</div></li>'
+        for i, item in enumerate(actions_60)
+    )
     actions_block = f"""
     <div class="highlight-block">
-      <div class="h-label">03 &middot; Quick wins &middot; eerste 30 dagen</div>
+      <div class="h-label">03 &middot; Quick wins &middot; 30/60 dagen</div>
       <div class="h-title">Wat doe je als eerste</div>
       <ul class="action-list">{actions_html}</ul>
     </div>""" if actions_30 else ""

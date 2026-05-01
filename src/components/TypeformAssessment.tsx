@@ -384,12 +384,22 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
           content_category: 'Assessment',
         });
       }
-      // GA4: track form submission
+      // GA4: track form submission. transport_type=beacon ensures the event
+      // survives the upcoming window.location.href navigation (sendBeacon).
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'generate_lead', {
           event_category: 'assessment',
           event_label: 'apk_completed',
           value: 1,
+          transport_type: 'beacon',
+        });
+        (window as any).gtag('event', 'form_submit', {
+          form_name: 'recruitment_apk_assessment',
+          transport_type: 'beacon',
+        });
+        (window as any).gtag('event', 'sign_up', {
+          method: 'recruitment_apk_assessment',
+          transport_type: 'beacon',
         });
       }
       // LinkedIn: track conversie
@@ -402,11 +412,10 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
       // Draft opruimen — submission succesvol
       try { localStorage.removeItem('apk_draft'); } catch { /* ignore */ }
 
-      if (data.rapportUrl) {
-        window.location.href = data.rapportUrl;
-      } else {
-        window.location.href = '/bedankt';
-      }
+      // 250ms delay so beacons + Meta Pixel + LinkedIn pixel finish
+      // queueing before navigation cancels in-flight XHRs.
+      const dest = data.rapportUrl || '/bedankt';
+      setTimeout(() => { window.location.href = dest; }, 250);
     } catch {
       setSubmitting(false);
       setError('Er ging iets mis. Probeer opnieuw.');

@@ -494,7 +494,14 @@ REGELS:
         messages: [{ role: 'user', content: p }],
       }),
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
+    // Een afgewezen sleutel (401) of een lege kredietpot gaf hier stil null terug:
+    // het rapport ging zonder AI-analyse de deur uit en niemand zag het (gemeten
+    // 06-10-2026 — sleutel al weken dood, 0 meldingen). Gooien laat de catch in
+    // generateClaudeAnalysis de Slack-melding sturen.
+    if (!response.ok) {
+      throw new Error(`Claude HTTP ${response.status}: ${data?.error?.type || 'onbekend'} — ${String(data?.error?.message || '').slice(0, 120)}`);
+    }
     const text = data?.content?.[0]?.text;
     if (!text) {
       console.error('Claude empty response:', JSON.stringify(data));

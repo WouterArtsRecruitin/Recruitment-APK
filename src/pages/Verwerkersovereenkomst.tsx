@@ -87,7 +87,6 @@ export function Verwerkersovereenkomst() {
             <tr><td style={S.td}>Supabase</td><td style={S.td}>Database en bestandsopslag</td><td style={S.td}>EU (Frankfurt)</td></tr>
             <tr><td style={S.td}>Resend</td><td style={S.td}>E-mailverzending</td><td style={S.td}>VS/EU</td></tr>
             <tr><td style={S.td}>Pipedrive</td><td style={S.td}>CRM en leadbeheer</td><td style={S.td}>EU</td></tr>
-            <tr><td style={S.td}>Stripe</td><td style={S.td}>Betalingsverwerking</td><td style={S.td}>EU</td></tr>
             <tr><td style={S.td}>Netlify</td><td style={S.td}>Landingspagina hosting</td><td style={S.td}>VS/EU</td></tr>
             <tr><td style={S.td}>Lemlist</td><td style={S.td}>E-mail nurture sequences</td><td style={S.td}>EU</td></tr>
             <tr><td style={S.td}>JotForm</td><td style={S.td}>Formulierverwerking</td><td style={S.td}>VS (EU)</td></tr>

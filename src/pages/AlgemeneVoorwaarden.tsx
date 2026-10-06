@@ -45,7 +45,7 @@ export function AlgemeneVoorwaarden() {
 
         <h2 style={S.h2}>3. Dienstverlening</h2>
         <p style={S.p}>3.1. Recruitin B.V. biedt online recruitment assessment tools, arbeidsmarktrapportages en gerelateerde diensten aan.</p>
-        <p style={S.p}>3.2. De gratis diensten (assessments, basisrapporten) zijn beperkt tot maximaal 2 gebruiksmomenten per persoon/organisatie. Aanvullend gebruik vereist een betaald abonnement of eenmalige betaling.</p>
+        <p style={S.p}>3.2. De diensten op het Platform (assessment en rapport) zijn kosteloos. Het aantal rapporten per persoon/organisatie kan worden beperkt.</p>
         <p style={S.p}>3.3. Dienstverlener behoudt zich het recht voor om de inhoud, functionaliteit en beschikbaarheid van het Platform te allen tijde te wijzigen zonder voorafgaande kennisgeving.</p>
 
         <h2 style={S.h2}>4. AI-Disclaimer</h2>
@@ -58,11 +58,8 @@ export function AlgemeneVoorwaarden() {
         <p style={S.p}>4.4. De Gebruiker is zelf verantwoordelijk voor beslissingen die worden genomen op basis van AI-gegenereerde content. Dienstverlener aanvaardt geen aansprakelijkheid voor schade die voortvloeit uit het handelen op basis van AI-gegenereerde aanbevelingen.</p>
         <p style={S.p}>4.5. Gebruikersgegevens die worden verwerkt door AI-systemen van derden (waaronder Anthropic) vallen onder de privacyverklaring en de verwerkingsvoorwaarden van de betreffende dienstverlener.</p>
 
-        <h2 style={S.h2}>5. Betalingen</h2>
-        <p style={S.p}>5.1. Betaalde diensten worden gefactureerd via Stripe. Betaling geschiedt vooraf, tenzij schriftelijk anders overeengekomen.</p>
-        <p style={S.p}>5.2. Alle genoemde prijzen zijn exclusief BTW, tenzij anders vermeld.</p>
-        <p style={S.p}>5.3. Bij niet-tijdige betaling is Dienstverlener gerechtigd de toegang tot het Platform op te schorten totdat betaling is ontvangen.</p>
-        <p style={S.p}>5.4. Abonnementen worden automatisch verlengd tenzij de Gebruiker minimaal 30 dagen voor het einde van de lopende termijn opzegt.</p>
+        <h2 style={S.h2}>5. Kosten</h2>
+        <p style={S.p}>5.1. Het gebruik van het Platform is kosteloos. Via het Platform worden geen betalingen verwerkt.</p>
 
         <h2 style={S.h2}>6. Herroepingsrecht</h2>
         <p style={S.p}>6.1. Voor digitale diensten die direct na aankoop worden geleverd (rapporten, analyses), doet de Gebruiker uitdrukkelijk afstand van het herroepingsrecht zodra de levering is gestart.</p>

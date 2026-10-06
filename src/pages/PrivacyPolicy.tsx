@@ -37,7 +37,6 @@ export function PrivacyPolicy() {
         <p style={S.p}><strong>Contactgegevens:</strong> Bedrijfsnaam, naam, e-mailadres, telefoonnummer, sector en vestigingslocatie wanneer u een formulier invult.</p>
         <p style={S.p}><strong>Assessment antwoorden:</strong> Uw antwoorden op onze assessment-vragen worden gebruikt om uw persoonlijke rapport te genereren.</p>
         <p style={S.p}><strong>Technische gegevens:</strong> IP-adres, browsertype, apparaatinformatie en paginabezoeken via cookies en tracking pixels (Google Analytics, Meta Pixel, LinkedIn Insight Tag).</p>
-        <p style={S.p}><strong>Betalingsgegevens:</strong> Worden verwerkt door Stripe en nooit door ons opgeslagen.</p>
 
         <h2 style={S.h2}>2. Waarvoor gebruiken wij uw gegevens</h2>
         <ul style={S.ul}>
@@ -59,7 +58,6 @@ export function PrivacyPolicy() {
           <li><strong>Vercel</strong> (website hosting) — VS/EU</li>
           <li><strong>Supabase</strong> (database) — EU (Frankfurt)</li>
           <li><strong>Pipedrive</strong> (CRM) — EU</li>
-          <li><strong>Stripe</strong> (betalingen) — EU</li>
           <li><strong>Google</strong> (Analytics) — VS, Privacy Shield</li>
           <li><strong>Meta</strong> (Pixel/advertenties) — VS/EU</li>
           <li><strong>LinkedIn</strong> (Insight Tag) — VS/EU</li>

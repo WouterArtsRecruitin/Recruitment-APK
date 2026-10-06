@@ -446,48 +446,16 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
       <div style={{ minHeight: '100dvh', background: '#05080c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Outfit, system-ui, sans-serif' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '480px', width: '100%', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>{'\uD83D\uDD12'}</div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f0f4f8', marginBottom: '8px' }}>Je 2 gratis APK-rapporten zijn gebruikt</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f0f4f8', marginBottom: '8px' }}>Je hebt al {MAX_FREE} APK-rapporten gemaakt</h2>
           <p style={{ fontSize: '15px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '32px' }}>
-            Je eerste {MAX_FREE} APK-rapporten waren gratis. Voor een 3e assessment (bijvoorbeeld een dochterbedrijf of andere business unit) betaal je {'€'}49 per rapport.
+            Wil je ook een dochterbedrijf of andere business unit doorlichten? Plan een gratis gesprek, dan kijken we er samen naar.
           </p>
 
-          {/* Pricing card — extra assessment */}
-          <div style={{ background: 'rgba(17,24,34,0.8)', border: '2px solid #09aedd', borderRadius: '16px', padding: '32px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>Extra APK-assessment</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', marginBottom: '6px' }}>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#f0f4f8' }}>{'\u20AC'}49</span>
-              <span style={{ fontSize: '14px', color: '#94a3b8' }}>per rapport</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '20px' }}>
-              Eenmalig, vrijblijvend, geen abonnement
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px', textAlign: 'left' }}>
-              {[
-                'Zelfde 29-vragen assessment',
-                'Volledig AI-gegenereerd rapport',
-                'SWOT + peer benchmark',
-                'Actieplan 30/60/90 dagen',
-                'PDF export',
-              ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', color: '#94a3b8' }}>
-                  <span style={{ color: '#09aedd' }}>{'\u2713'}</span> {item}
-                </div>
-              ))}
-            </div>
-            <a href="https://buy.stripe.com/dRm7sE0Xnd9Vfs9fA34Rq06" target="_blank" rel="noopener noreferrer"
-              style={{ display: 'block', background: '#09aedd', color: '#05080c', padding: '16px', borderRadius: '10px', fontSize: '16px', fontWeight: 700, textDecoration: 'none', textAlign: 'center' }}>
-              Koop extra assessment ({'\u20ac'}49) {'\u2192'}
-            </a>
-          </div>
-
-          {/* Upgrade bestaand rapport naar Verbeterplan \u20ac249 \u2014 secundair */}
-          <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.6 }}>
-            Of upgrade je huidige rapport naar het{' '}
-            <a href="https://buy.stripe.com/dRm14g8pP0n9a7P5Zt4Rq07" target="_blank" rel="noopener noreferrer" style={{ color: '#E8630A', textDecoration: 'underline', fontWeight: 600 }}>
-              volledige Verbeterplan ({'\u20ac'}249)
-            </a>{' '}
-            {'\u2014'} unlock alle acties en KPI{"'"}s per categorie {'\u2192'}
-          </div>
+          {/* Geen betaalde upsell meer: de APK is een leadgen-LP (besluit Wouter 07-10-2026) */}
+          <a href="https://calendly.com/wouter-arts-/belafspraak-met-wouter" target="_blank" rel="noopener noreferrer"
+            style={{ display: 'block', background: '#09aedd', color: '#05080c', padding: '16px', borderRadius: '10px', fontSize: '16px', fontWeight: 700, textDecoration: 'none', textAlign: 'center', marginBottom: '16px' }}>
+            Plan een gratis gesprek (15 min) {'\u2192'}
+          </a>
 
           <div style={{ fontSize: '13px', color: '#94a3b8' }}>
             Of <a href="https://wa.me/31614314593" target="_blank" rel="noopener noreferrer" style={{ color: '#09aedd', textDecoration: 'underline' }}>neem contact op</a> voor maatwerk

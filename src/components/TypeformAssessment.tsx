@@ -452,7 +452,7 @@ export function TypeformAssessment({ onClose }: { onClose: () => void }) {
           </p>
 
           {/* Geen betaalde upsell meer: de APK is een leadgen-LP (besluit Wouter 07-10-2026) */}
-          <a href="https://calendly.com/wouter-arts-/belafspraak-met-wouter" target="_blank" rel="noopener noreferrer"
+          <a href="https://calendly.com/wouter-arts-/recruitment-apk" target="_blank" rel="noopener noreferrer"
             style={{ display: 'block', background: '#09aedd', color: '#05080c', padding: '16px', borderRadius: '10px', fontSize: '16px', fontWeight: 700, textDecoration: 'none', textAlign: 'center', marginBottom: '16px' }}>
             Plan een gratis gesprek (15 min) {'\u2192'}
           </a>

@@ -541,7 +541,7 @@ export function Rapport() {
                 <div style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>In een gratis gesprek met Wouter</div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch', paddingTop: '12px' }}>
                   {/* Enige vervolgstap: gratis gesprek (geen betaalde tiers meer, besluit 07-10-2026) */}
-                  <a href="https://calendly.com/wouter-arts-/belafspraak-met-wouter" target="_blank" rel="noopener noreferrer"
+                  <a href="https://calendly.com/wouter-arts-/recruitment-apk" target="_blank" rel="noopener noreferrer"
                     style={{ flex: 1, display: 'block', background: 'white', border: '2px solid #09aedd', borderRadius: '8px', padding: '12px 8px', textDecoration: 'none', textAlign: 'center' }}>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#09aedd', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gratis</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a1a', marginTop: '4px' }}>15-min gesprek</div>
